@@ -100,7 +100,7 @@ export const createRoutes = async (app) => {
 
   app.post('/resetPassword', async (req, res) => {
     let userData = req.body || JSON.parse(req.headers.data || '{}');
-    const ret = await session.resetPassword({ userData }).then((res) => res);
+    const ret = await session.resetPassword({ userData });
 
     if (ret.errorCode) return res.status(ret.errorCode).send(ret);
     else return res.send(ret);

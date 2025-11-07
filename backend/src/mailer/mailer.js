@@ -9,7 +9,7 @@ export default class Mailer {
 
   sendEmail(to, subject, html) {
     this.resend.emails.send({
-      from: 'support@spectra-suite.org',
+      from: 'onboarding@resend.dev',
       to,
       subject,
       html,
@@ -100,7 +100,7 @@ export default class Mailer {
                       <tr>
                         <td style="text-align: center">
                           <img
-                            src="https://raw.githubusercontent.com/Wisso124214/dash-dish/refs/heads/main/frontend/src/assets/logo-mini.png"
+                            src="https://raw.githubusercontent.com/Wisso124214/spectra-suite/refs/heads/main/frontend/src/assets/logo-mini.png"
                             alt="Event Suite Logo"
                             style="
                               margin-right: 16px;

@@ -314,18 +314,16 @@ export default class Session {
   };
 
   resetPassword = async ({ userData }) => {
-    const { token, password, confirmPassword } = userData;
+    const { token, password, confirmPassword } = userData || {};
+    // Validación inicial de token
     if (!token) {
       return {
-        errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
-        message: 'Error del servidor al conseguir el token',
+        errorCode: this.ERROR_CODES.BAD_REQUEST,
+        message: 'Token no proporcionado',
       };
     }
 
     const decoded = this.tokenizer.verifyToken(token);
-    const { userId } = decoded || {};
-    const dataUser = decoded?.user;
-
     if (!decoded) {
       return {
         errorCode: this.ERROR_CODES.BAD_REQUEST,
@@ -333,6 +331,17 @@ export default class Session {
       };
     }
 
+    const { userId } = decoded || {};
+    const dataUser = decoded?.user;
+
+    if (!userId) {
+      return {
+        errorCode: this.ERROR_CODES.BAD_REQUEST,
+        message: 'Token inválido (sin usuario asociado)',
+      };
+    }
+
+    // Validación de campos
     if (!password || !confirmPassword) {
       return {
         errorCode: this.ERROR_CODES.BAD_REQUEST,
@@ -347,8 +356,7 @@ export default class Session {
     );
 
     const validations = { passwordError, confirmPasswordError };
-
-    for (const [key, value] of Object.entries(validations)) {
+    for (const value of Object.values(validations)) {
       if (value) {
         return {
           errorCode: this.ERROR_CODES.BAD_REQUEST,
@@ -357,28 +365,25 @@ export default class Session {
       }
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const updatedUser = { ...dataUser, password: hashedPassword };
+    try {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      await this.dbms.query(
+        'UPDATE public."user" SET password = $1 WHERE id = $2;',
+        [hashedPassword, userId]
+      );
 
-    this.dbms
-      .query('UPDATE public."user" SET password = $1 WHERE id = $2;', [
-        updatedUser.password,
-        userId,
-      ])
-      .then(() => {
-        return {
-          message: `Contraseña actualizada correctamente para el usuario ${updatedUser.username}. Por favor inicie sesión con su nueva contraseña.`,
-          redirect: '/login',
-        };
-      })
-      .catch((error) => {
-        console.error('Error al actualizar la contraseña:', error);
-        return {
-          errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
-          message:
-            'Error al actualizar la contraseña. El email ingresado no está asociado a ningún usuario registrado.',
-        };
-      });
+      return {
+        message: `Contraseña actualizada correctamente para el usuario ${dataUser?.username || ''}. Por favor inicie sesión con su nueva contraseña.`,
+        redirect: '/login',
+      };
+    } catch (error) {
+      console.error('Error al actualizar la contraseña:', error);
+      return {
+        errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
+        message:
+          'Error al actualizar la contraseña. Intente nuevamente más tarde.',
+      };
+    }
   };
 }
