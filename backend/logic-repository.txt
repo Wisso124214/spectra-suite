@@ -1,0 +1,30 @@
+setUserProfile
+- Comprobar que no hallan datos nulos o faltantes
+- GetSet userId por username
+- GetSet id perfil por nombre del perfil
+- Insertar en user_profile
+
+setUsersProfiles
+- Obtener las keys (usernames)
+- Recorrer las keys
+- Comprobar que los values no sean nulos (profiles)
+- Recorrer los values
+- Setear la data
+
+getUsersProfiles
+- Comprobar que no hallan datos nulos o faltantes
+- Ejecutar query
+
+getUsersProfiles
+- Ejecutar query
+
+delUserProfile
+- Comprobar que no hallan datos nulos o faltantes
+- Ejecutar query
+
+delUsersProfiles
+- Obtener las keys (usernames)
+- Recorrer las keys
+- Comprobar que los values no sean nulos (profiles)
+- Recorrer los values
+- Setear la data

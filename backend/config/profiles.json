@@ -1,0 +1,17 @@
+{
+  "SUPER_ADMIN": {
+    "name": "super administrador"
+  },
+  "DB_ADMIN": {
+    "name": "administrador de base de datos"
+  },
+  "SECURITY_ADMIN": {
+    "name": "administrador de seguridad"
+  },
+  "EVENT_ADMIN": {
+    "name": "administrador de eventos"
+  },
+  "PARTICIPANT": {
+    "name": "participante"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "commonjs",
+    "rootDir": ".",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "baseUrl": "."
+  },
+  "include": [
+    "src",
+    "src/services",
+    "src/utils",
+    ".dev-trials",
+    "*.js",
+    "config/secret-config.js",
+    "config/config.js",
+    "config/secret-config-example.js"
+  ],
+  "exclude": ["node_modules"]
+}

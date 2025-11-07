@@ -1,0 +1,239 @@
+{
+  'insertUser': {
+    query: 'INSERT INTO public."user" (username, password, email, status, register_date) VALUES ($1, $2, $3, $4, $5);',
+      structure_params: {
+        username: 'string',
+        password: 'string',
+        email: 'string',
+        status: 'string',
+        register_date: 'string'
+      },
+      orderArray: ['username', 'password', 'email', 'status', 'register_date']
+  },
+  'getUserWhere': {
+    query: 'SELECT * FROM public."user" WHERE username = $1;',
+      structure_params: { username: 'string' },
+      orderArray: ['username']
+  },
+  'deleteUserByUsername': {
+    query: 'DELETE FROM public."user" WHERE username = $1;',
+      structure_params: { username: 'string' },
+      orderArray: ['username']
+  },
+  'getUserProfiles': {
+    query: 'SELECT u.id AS user_id, u.username, p.id AS profile_id, p.name AS profile_name FROM public."user" u JOIN public."user_profile" up ON u.id = up.id_user JOIN public."profile" p ON up.id_profile = p.id WHERE u.username = $1;',
+      structure_params: { username: 'string' },
+      orderArray: ['username']
+  },
+  'getUsersProfiles': {
+    query: 'SELECT u.id AS user_id, u.username, p.id AS profile_id, p.name AS profile_name FROM public."user" u JOIN public."user_profile" up ON u.id = up.id_user JOIN public."profile" p ON up.id_profile = p.id',
+      structure_params: { },
+      orderArray: []
+  },
+  'delUserProfile': {
+    query: 'DELETE FROM public."user_profile" WHERE id_user = (SELECT id FROM public."user" WHERE username = $1) AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);',
+      structure_params: { username: 'string', profile_name: 'string' },
+      orderArray: ['username', 'profile_name']
+  },
+  'setUserProfile': {
+    query: 'INSERT INTO public."user_profile" (id_user, id_profile) VALUES ((SELECT id FROM public."user" WHERE username = $1), (SELECT id FROM public."profile" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+      structure_params: { username: 'string', profile_name: 'string' },
+      orderArray: ['username', 'profile_name']
+  },
+  'delUsersProfiles': {
+    query: 'DELETE FROM public."user_profile" WHERE id_user = (SELECT id FROM public."user" WHERE username = $1) AND id_profile IN (SELECT id FROM public."profile" WHERE name = ANY($2::text[]));',
+      structure_params: { username: 'string', profile_names: 'strings_array' },
+      orderArray: ['username', 'profile_names']
+  },
+  'setProfileOption': {
+    query: 'INSERT INTO public."option_profile" (id_option, id_profile) VALUES ((SELECT id FROM public."option" WHERE name = $1), (SELECT id FROM public."profile" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+      structure_params: { option_name: 'string', profile_name: 'string' },
+      orderArray: ['option_name', 'profile_name']
+  },
+  'getProfileOptions': {
+    query: 'SELECT p.id AS profile_id, p.name AS profile_name, o.id AS option_id, o.name AS option_name FROM public."profile" p JOIN public."option_profile" op ON p.id = op.id_profile JOIN public."option" o ON op.id_option = o.id WHERE p.name = $1;',
+      structure_params: { profile_name: 'string' },
+      orderArray: ['profile_name']
+  },
+  'getProfilesOptions': {
+    query: 'SELECT p.id AS profile_id, p.name AS profile_name, o.id AS option_id, o.name AS option_name FROM public."profile" p JOIN public."option_profile" op ON p.id = op.id_profile JOIN public."option" o ON op.id_option = o.id',
+    structure_params: { },
+    orderArray: []
+  },
+  'delProfileOption': {
+    query: 'DELETE FROM public."option_profile" WHERE id_option = (SELECT id FROM public."option" WHERE name = $1) AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);',
+      structure_params: { option_name: 'string', profile_name: 'string' },
+      orderArray: ['option_name', 'profile_name']
+  },
+  'setMenuOption': {
+    query: 'INSERT INTO public."option_menu" (id_option, id_menu) VALUES ((SELECT id FROM public."option" WHERE name = $1), (SELECT id FROM public."menu" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+      structure_params: { option_name: 'string', menu_name: 'string' },
+      orderArray: ['option_name', 'menu_name']
+  },
+  'getMenuOptions': {
+    query: 'SELECT m.id AS menu_id, m.name AS menu_name, o.id AS option_id, o.name AS option_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id WHERE m.name = $1;',
+      structure_params: { menu_name: 'string' },
+      orderArray: ['menu_name']
+  },
+  'getMenusOptions': {
+    query: 'SELECT m.id AS menu_id, m.name AS menu_name, o.id AS option_id, o.name AS option_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id',
+    structure_params: { },
+    orderArray: []
+  },
+  'delMenuOption': {
+    query: 'DELETE FROM public."option_menu" WHERE id_option = (SELECT id FROM public."option" WHERE name = $1) AND id_menu = (SELECT id FROM public."menu" WHERE name = $2);',
+      structure_params: { option_name: 'string', menu_name: 'string' },
+      orderArray: ['option_name', 'menu_name']
+  },
+  'setMenuOptionProfile': {
+    query: 'WITH o AS (SELECT id FROM public."option" WHERE name = $1), m AS (SELECT id FROM public."menu" WHERE name = $2), p AS (SELECT id FROM public."profile" WHERE name = $3), ins_om AS (INSERT INTO public."option_menu" (id_option, id_menu) SELECT o.id, m.id FROM o, m ON CONFLICT DO NOTHING RETURNING 1), ins_op AS (INSERT INTO public."option_profile" (id_option, id_profile) SELECT o.id, p.id FROM o, p ON CONFLICT DO NOTHING RETURNING 1) SELECT COALESCE((SELECT count(*) FROM ins_om),0) AS inserted_om, COALESCE((SELECT count(*) FROM ins_op),0) AS inserted_op;',
+      structure_params: { option_name: 'string', menu_name: 'string', profile_name: 'string' },
+      orderArray: ['option_name', 'menu_name', 'profile_name']
+  },
+  'replaceMenuOptionProfile': {
+    query: 'WITH o AS (SELECT id FROM public."option" WHERE name = $1), m AS (SELECT id FROM public."menu" WHERE name = $2), p_old AS (SELECT id FROM public."profile" WHERE name = $3), p_new AS (SELECT id FROM public."profile" WHERE name = $4), del_old AS (DELETE FROM public."option_profile" WHERE id_option = (SELECT id FROM o) AND id_profile = (SELECT id FROM p_old) RETURNING 1), ins_om AS (INSERT INTO public."option_menu" (id_option, id_menu) SELECT (SELECT id FROM o), (SELECT id FROM m) ON CONFLICT DO NOTHING RETURNING 1), ins_new AS (INSERT INTO public."option_profile" (id_option, id_profile) SELECT (SELECT id FROM o), (SELECT id FROM p_new) ON CONFLICT DO NOTHING RETURNING 1) SELECT COALESCE((SELECT count(*) FROM del_old),0) AS deleted_op, COALESCE((SELECT count(*) FROM ins_om),0) AS ensured_om, COALESCE((SELECT count(*) FROM ins_new),0) AS inserted_op;',
+      structure_params: { option_name: 'string', menu_name: 'string', old_profile_name: 'string', new_profile_name: 'string' },
+      orderArray: ['option_name', 'menu_name', 'old_profile_name', 'new_profile_name']
+  },
+  'getMenuOptionsProfile': {
+    query: 'SELECT m.id AS menu_id, m.name AS menu_name, o.id AS option_id, o.name AS option_name, p.id AS profile_id, p.name AS profile_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id JOIN public."option_profile" op ON o.id = op.id_option JOIN public."profile" p ON op.id_profile = p.id WHERE m.name = $1 AND p.name = $2;',
+      structure_params: { menu_name: 'string', profile_name: 'string' },
+      orderArray: ['menu_name', 'profile_name']
+  },
+  'getMenusOptionsProfile': {
+    query: 'SELECT m.id AS menu_id, m.name AS menu_name, o.id AS option_id, o.name AS option_name, p.id AS profile_id, p.name AS profile_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id JOIN public."option_profile" op ON o.id = op.id_option JOIN public."profile" p ON op.id_profile = p.id WHERE p.name = $1;',
+      structure_params: { profile_name: 'string' },
+      orderArray: ['profile_name']
+  },
+  'getMenusOptionsProfiles': {
+    query: 'SELECT m.id AS menu_id, m.name AS menu_name, o.id AS option_id, o.name AS option_name, p.id AS profile_id, p.name AS profile_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id JOIN public."option_profile" op ON o.id = op.id_option JOIN public."profile" p ON op.id_profile = p.id',
+    structure_params: { },
+    orderArray: []
+  },
+  'delMenuOptionProfile': {
+    query: 'WITH del_om AS (DELETE FROM public."option_menu" WHERE id_option = (SELECT id FROM public."option" WHERE name = $1) AND id_menu = (SELECT id FROM public."menu" WHERE name = $2) RETURNING 1), del_op AS (DELETE FROM public."option_profile" WHERE id_option = (SELECT id FROM public."option" WHERE name = $1) AND id_profile = (SELECT id FROM public."profile" WHERE name = $3) RETURNING 1) SELECT COALESCE((SELECT count(*) FROM del_om),0) AS deleted_om, COALESCE((SELECT count(*) FROM del_op),0) AS deleted_op;',
+      structure_params: { option_name: 'string', menu_name: 'string', profile_name: 'string' },
+      orderArray: ['option_name', 'menu_name', 'profile_name']
+  },
+  'delAllMenusOptionsProfiles': {
+    query: 'WITH del_om AS (DELETE FROM public."option_menu" RETURNING 1), del_op AS (DELETE FROM public."option_profile" RETURNING 1), del_m AS (DELETE FROM public."menu" RETURNING 1), del_o AS (DELETE FROM public."option" RETURNING 1) SELECT COALESCE((SELECT count(*) FROM del_om),0) AS deleted_om, COALESCE((SELECT count(*) FROM del_op),0) AS deleted_op, COALESCE((SELECT count(*) FROM del_m),0) AS deleted_menus, COALESCE((SELECT count(*) FROM del_o),0) AS deleted_options;',
+    structure_params: { },
+    orderArray: []
+  },
+  'setProfileMethod': {
+    query: 'INSERT INTO public."method_profile" (id_method, id_profile) VALUES ((SELECT id FROM public."method" WHERE name = $1), (SELECT id FROM public."profile" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+      structure_params: { method_name: 'string', profile_name: 'string' },
+      orderArray: ['method_name', 'profile_name']
+  },
+  'getProfileMethods': {
+    query: 'SELECT p.id AS profile_id, p.name AS profile_name, m.id AS method_id, m.name AS method_name FROM public."profile" p JOIN public."method_profile" mp ON p.id = mp.id_profile JOIN public."method" m ON mp.id_method = m.id WHERE p.name = $1;',
+      structure_params: { profile_name: 'string' },
+      orderArray: ['profile_name']
+  },
+  'getProfilesMethods': {
+    query: 'SELECT p.id AS profile_id, p.name AS profile_name, m.id AS method_id, m.name AS method_name FROM public."profile" p JOIN public."method_profile" mp ON p.id = mp.id_profile JOIN public."method" m ON mp.id_method = m.id',
+    structure_params: { },
+    orderArray: []
+  },
+  'delProfileMethod': {
+    query: 'DELETE FROM public."method_profile" WHERE id_method = (SELECT id FROM public."method" WHERE name = $1) AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);',
+      structure_params: { method_name: 'string', profile_name: 'string' },
+      orderArray: ['method_name', 'profile_name']
+  },
+  'setClassMethod': {
+    query: 'INSERT INTO public."class_method" (id_class, id_method) VALUES ((SELECT id FROM public."class" WHERE name = $1), (SELECT id FROM public."method" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+      structure_params: { class_name: 'string', method_name: 'string' },
+      orderArray: ['class_name', 'method_name']
+  },
+  'getClassMethods': {
+    query: 'SELECT c.id AS class_id, c.name AS class_name, m.id AS method_id, m.name AS method_name FROM public."class" c JOIN public."class_method" cm ON c.id = cm.id_class JOIN public."method" m ON cm.id_method = m.id WHERE c.name = $1;',
+      structure_params: { class_name: 'string' },
+      orderArray: ['class_name']
+  },
+  'getClassesMethods': {
+    query: 'SELECT c.id AS class_id, c.name AS class_name, m.id AS method_id, m.name AS method_name FROM public."class" c JOIN public."class_method" cm ON c.id = cm.id_class JOIN public."method" m ON cm.id_method = m.id',
+    structure_params: { },
+    orderArray: []
+  },
+  'delClassMethod': {
+    query: 'DELETE FROM public."class_method" WHERE id_class = (SELECT id FROM public."class" WHERE name = $1) AND id_method = (SELECT id FROM public."method" WHERE name = $2);',
+      structure_params: { class_name: 'string', method_name: 'string' },
+      orderArray: ['class_name', 'method_name']
+  },
+  'delSubsystemClassMethod': {
+    query: 'DELETE FROM public."subsystem_class" WHERE id_subsystem = (SELECT id FROM public."subsystem" WHERE name = $1) AND id_class = (SELECT id FROM public."class" WHERE name = $2);',
+      structure_params: { subsystem_name: 'string', class_name: 'string' },
+      orderArray: ['subsystem_name', 'class_name']
+  },
+  'setSubsystemClassMethod': {
+    query: 'INSERT INTO public."subsystem_class" (id_subsystem, id_class) VALUES ((SELECT id FROM public."subsystem" WHERE name = $1), (SELECT id FROM public."class" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+      structure_params: { subsystem_name: 'string', class_name: 'string' },
+      orderArray: ['subsystem_name', 'class_name']
+  },
+  'getSubsystemClassesMethods': {
+    query: 'SELECT s.id AS subsystem_id, s.name AS subsystem_name, c.id AS class_id, c.name AS class_name, m.id AS method_id, m.name AS method_name FROM public."subsystem" s JOIN public."subsystem_class" sc ON s.id = sc.id_subsystem JOIN public."class" c ON sc.id_class = c.id JOIN public."class_method" cm ON c.id = cm.id_class JOIN public."method" m ON cm.id_method = m.id WHERE s.name = $1;',
+      structure_params: { subsystem_name: 'string' },
+      orderArray: ['subsystem_name']
+  },
+  'setTxTransaction': {
+    query: 'WITH s AS (SELECT id FROM public."subsystem" WHERE name = $1), c AS (SELECT id FROM public."class" WHERE name = $2), m AS (SELECT id FROM public."method" WHERE name = $3), ins AS (INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) SELECT $4, (SELECT id FROM s), (SELECT id FROM c), (SELECT id FROM m) WHERE (SELECT id FROM s) IS NOT NULL AND (SELECT id FROM c) IS NOT NULL AND (SELECT id FROM m) IS NOT NULL ON CONFLICT DO NOTHING RETURNING tx), sel AS (SELECT t.tx FROM public."transaction" t, s, c, m WHERE t.id_subsystem = s.id AND t.id_class = c.id AND t.id_method = m.id AND t.description = $4 LIMIT 1) SELECT COALESCE((SELECT tx FROM ins), (SELECT tx FROM sel)) AS tx;',
+      structure_params: { subsystem_name: 'string', class_name: 'string', method_name: 'string', description: 'string' },
+      orderArray: ['subsystem_name', 'class_name', 'method_name', 'description']
+  },
+  'getTxTransactionByNames': {
+    query: 'WITH s AS (SELECT id FROM public."subsystem" WHERE name = $1), c AS (SELECT id FROM public."class" WHERE name = $2), m AS (SELECT id FROM public."method" WHERE name = $3) SELECT t.tx, t.description FROM public."transaction" t, s, c, m WHERE t.id_subsystem = s.id AND t.id_class = c.id AND t.id_method = m.id;',
+      structure_params: { subsystem_name: 'string', class_name: 'string', method_name: 'string' },
+      orderArray: ['subsystem_name', 'class_name', 'method_name']
+  },
+  'getTxTransactionById': {
+    query: 'SELECT tx, description FROM public."transaction" WHERE tx = $1;',
+      structure_params: { tx: 'int' },
+      orderArray: ['tx']
+  },
+  'delTxTransactionByNames': {
+    query: 'WITH s AS (SELECT id FROM public."subsystem" WHERE name = $1), c AS (SELECT id FROM public."class" WHERE name = $2), m AS (SELECT id FROM public."method" WHERE name = $3), del AS (DELETE FROM public."transaction" USING s, c, m WHERE public."transaction".id_subsystem = s.id AND public."transaction".id_class = c.id AND public."transaction".id_method = m.id RETURNING 1) SELECT COALESCE((SELECT count(*) FROM del),0) AS deleted;',
+      structure_params: { subsystem_name: 'string', class_name: 'string', method_name: 'string' },
+      orderArray: ['subsystem_name', 'class_name', 'method_name']
+  },
+  'delTxTransactionById': {
+    query: 'DELETE FROM public."transaction" WHERE tx = $1 RETURNING 1;',
+      structure_params: { tx: 'int' },
+      orderArray: ['tx']
+  },
+  'delAllTxTransaction': {
+    query: 'DELETE FROM public."transaction" RETURNING 1;',
+      structure_params: { },
+      orderArray: []
+  },
+  'loadPermissions': {
+    query: 'SELECT s.id AS id_subsystem, c.id AS id_class, m.id AS id_method, p.id AS id_profile, (mp.id_method IS NOT NULL) AS allowed FROM public."subsystem" s JOIN public."subsystem_class" sc ON sc.id_subsystem = s.id JOIN public."class" c ON sc.id_class = c.id JOIN public."class_method" cm ON cm.id_class = c.id JOIN public."method" m ON cm.id_method = m.id CROSS JOIN public."profile" p LEFT JOIN public."method_profile" mp ON mp.id_method = m.id AND mp.id_profile = p.id ORDER BY s.id, c.id, m.id, p.id;',
+    structure_params: { },
+    orderArray: []
+  },
+  'resolveMethodPermissionRefs': {
+    query: 'WITH s AS (SELECT id FROM public."subsystem" WHERE name = $1), c AS (SELECT id FROM public."class" WHERE name = $2), sc AS (SELECT 1 FROM public."subsystem_class" WHERE id_subsystem = (SELECT id FROM s) AND id_class = (SELECT id FROM c)), m AS (SELECT id FROM public."method" WHERE name = $3), cm AS (SELECT 1 FROM public."class_method" WHERE id_class = (SELECT id FROM c) AND id_method = (SELECT id FROM m)), p AS (SELECT id FROM public."profile" WHERE name = $4) SELECT (SELECT id FROM s) AS id_subsystem, (SELECT id FROM c) AS id_class, (SELECT id FROM m) AS id_method, (SELECT id FROM p) AS id_profile, EXISTS(SELECT 1 FROM sc) AS valid_sc, EXISTS(SELECT 1 FROM cm) AS valid_cm;',
+    structure_params: { subsystem_name: 'string', class_name: 'string', method_name: 'string', profile_name: 'string' },
+    orderArray: ['subsystem_name', 'class_name', 'method_name', 'profile_name']
+  },
+  'hasProfileMethod': {
+    query: 'SELECT EXISTS(SELECT 1 FROM public."method_profile" WHERE id_method = (SELECT id FROM public."method" WHERE name = $1) AND id_profile = (SELECT id FROM public."profile" WHERE name = $2)) AS allowed;',
+    structure_params: { method_name: 'string', profile_name: 'string' },
+    orderArray: ['method_name', 'profile_name']
+  },
+  'grantMethodPermission': {
+    query: 'INSERT INTO public."method_profile" (id_method, id_profile) VALUES ((SELECT id FROM public."method" WHERE name = $1), (SELECT id FROM public."profile" WHERE name = $2)) ON CONFLICT DO NOTHING;',
+    structure_params: { method_name: 'string', profile_name: 'string' },
+    orderArray: ['method_name', 'profile_name']
+  },
+  'revokeMethodPermission': {
+    query: 'DELETE FROM public."method_profile" WHERE id_method = (SELECT id FROM public."method" WHERE name = $1) AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);',
+    structure_params: { method_name: 'string', profile_name: 'string' },
+    orderArray: ['method_name', 'profile_name']
+  }
+  ,
+  'getUsers': {
+    query: 'SELECT id, username, email, status, register_date FROM public."user" ORDER BY id ASC;'
+    ,structure_params: { }
+    ,orderArray: []
+  }
+}
