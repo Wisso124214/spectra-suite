@@ -80,7 +80,7 @@ export default function Login() {
   return (
     <div className='flex items-center justify-center h-screen w-full'>
       <Card className='w-full max-w-sm'>
-        <CardHeader>
+        <CardHeader className='text-left'>
           <CardTitle>Iniciar sesión</CardTitle>
           <CardDescription>
             Ingrese su nombre de usuario para iniciar sesión en su cuenta

@@ -67,7 +67,7 @@ export default function ForgotPassword() {
   return (
     <div className='flex items-center justify-center h-screen w-full'>
       <Card className='w-full max-w-sm'>
-        <CardHeader>
+        <CardHeader className='text-left'>
           <CardTitle>Olvidó su contraseña?</CardTitle>
           <CardDescription>
             Ingrese sus email para enviarle un correo de autenticación
