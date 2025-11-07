@@ -1,0 +1,7 @@
+{
+  "tx": 401,
+  "params": {
+    "nameQuery": "getUserProfiles",
+    "params": { "username": "Bustos" }
+  }
+}

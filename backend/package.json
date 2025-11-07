@@ -20,6 +20,7 @@
     "#debugger/*": "./src/debugger/*",
     "#services/*": "./src/services/*",
     "#utils/*": "./src/utils/*",
+    "#dispatcher/*": "./src/dispatcher/*",
     "#formatter/*": "./src/formatter/*"
   },
   "scripts": {

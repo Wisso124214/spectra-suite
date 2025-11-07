@@ -398,6 +398,103 @@ Integración con opciones:
   - Validaciones de campos por entidad (`user`, `profile`, `subsystem`, `class`, `method`, `menu`, `option`, `transaction`).
   - `validateStructuredData(data, structure)` para validar esquemas anidados.
 
+  ## Ejemplo: llamar al endpoint `/toProcess` (cURL y fetch)
+
+  El endpoint `/toProcess` es el punto general para ejecutar métodos del backend. El formato de petición esperado (según uso aquí para pruebas directas con queries nombradas) es un JSON con la forma:
+  - `tx` (opcional cuando se usa `nameQuery` directamente en pruebas)
+  - `params`: objeto que puede contener `nameQuery` (nombre de la consulta en `config/queries.yaml`) y `params` (parámetros para esa consulta)
+
+  Ejemplo de payload que solicita la consulta nombrada `getUserProfiles` con parámetro `username`:
+
+  ```json
+  {
+    "tx": 401,
+    "params": {
+      "nameQuery": "getUserProfiles",
+      "params": { "username": "Bustos" }
+    }
+  }
+  ```
+
+  Nota importante: en el despliegue normal `/toProcess` requiere que el usuario esté autenticado (sesión válida). En entornos de desarrollo este README muestra cómo probar rápidamente la ejecución de una consulta nombrada; tu instalación puede incluir protecciones adicionales.
+
+  Ejemplo con curl (Linux/macOS / WSL - Bash):
+
+  ```bash
+  curl -v -X POST 'http://localhost:3050/toProcess' \
+    -H 'Content-Type: application/json' \
+    -d '{"tx":401,"params":{"nameQuery":"getUserProfiles","params":{"username":"Bustos"}}}'
+  ```
+
+  Ejemplo con curl en Windows PowerShell (evita problemas con `@` y el parsing):
+  1. Guardar el JSON en un archivo `payload.json`:
+
+  ```json
+  {
+    "tx": 401,
+    "params": {
+      "nameQuery": "getUserProfiles",
+      "params": { "username": "Bustos" }
+    }
+  }
+  ```
+
+  2. Enviar con `curl.exe` usando `--%` para que PowerShell no interprete caracteres especiales:
+
+  ```powershell
+  curl.exe --% -v -X POST "http://localhost:3050/toProcess" -H "Content-Type: application/json" --data-binary @payload.json
+  ```
+
+  Ejemplo con fetch (navegador o entorno Node con fetch disponible):
+
+  ```js
+  fetch(`${SERVER_URL}/toProcess`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tx: 401,
+      params: {
+        nameQuery: 'getUserProfiles',
+        params: { username: 'Bustos' },
+      },
+    }),
+  })
+    .then((r) => r.json())
+    .then((data) => console.log('Response:', data))
+    .catch((err) => console.error('Error:', err));
+  ```
+
+  Respuesta esperada (ejemplo):
+
+  ```json
+  {
+    "ok": true,
+    "rows": [
+      {
+        "user_id": 16,
+        "username": "Bustos",
+        "profile_id": 1,
+        "profile_name": "administrador de seguridad"
+      },
+      {
+        "user_id": 16,
+        "username": "Bustos",
+        "profile_id": 3,
+        "profile_name": "participante"
+      }
+    ]
+  }
+  ```
+
+  Otras formas de respuesta:
+  - `{ errorCode: <código>, message: '...' }` en caso de errores esperados (400/401/403/404).
+  - El endpoint puede devolver `{ ok: true, result: ... }` cuando la ruta ejecuta un método (no una consulta nombrada) y el método devuelve un resultado distinto.
+
+  Consejos prácticos:
+  - Asegúrate de estar autenticado si tu entorno requiere sesión. Usa `/login` para obtener una sesión antes de llamar a `/toProcess`.
+  - Para PowerShell, usar un archivo para el payload y `--%` con `curl.exe` evita problemas de escape.
+  - Usa las queries nombradas definidas en `config/queries.yaml` (por ejemplo `getUserProfiles`, `getMenuOptions`, etc.) y pasa los parámetros en `params`.
+
 - `Formatter` (`src/formatter/formatter.js`):
   - `formatObjectParams(obj, orderedArray=['key','value'])` → mapea `{ key: [values] }` a filas.
   - `formatArrayParams(array, orderedArray)` → mapea array de objetos a filas.

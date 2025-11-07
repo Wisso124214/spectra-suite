@@ -9,6 +9,18 @@ export const createRoutes = async (app) => {
   const ERROR_CODES = config.ERROR_CODES;
   const { existSession, createAndUpdateSession, destroySession } = sessionMngr;
 
+  app.get('/users', async (req, res) => {
+    try {
+      const result = await dbms.executeNamedQuery({ nameQuery: 'getUsers' });
+      const users = result?.rows || [];
+      res.json(users);
+    } catch (err) {
+      res.status(err?.errorCode || 500).json({
+        message: err?.message || 'Error obteniendo usuarios',
+      });
+    }
+  });
+
   app.post('/login', async (req, res) => {
     if (existSession(req)) {
       return res.send({

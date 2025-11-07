@@ -110,12 +110,6 @@ export default class Session {
 
       const userProfiles = userProfilesResult.rows.map((up) => up.name);
 
-      // Evita loggear datos sensibles en producción
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('userData', { username: userData.username, activeProfile });
-        console.log('userProfiles', userProfiles);
-      }
-
       // Si el perfil solicitado está entre los perfiles asignados
       if (activeProfile && userProfiles.includes(activeProfile)) {
         const { id, email } = userData;
