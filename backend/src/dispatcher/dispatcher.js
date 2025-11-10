@@ -20,10 +20,10 @@ export default class Dispatcher {
   }
 
   init() {
-    this.createRoutes();
+    this.createToProcess();
   }
 
-  createRoutes() {
+  createToProcess() {
     this.app.post('/toProcess', async (req, res) => {
       try {
         const sessionMngr = new SessionManager();
