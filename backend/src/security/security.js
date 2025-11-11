@@ -1,11 +1,10 @@
-import DBMS from '#dbms/dbms.js';
-import Utils from '#utils/utils.js';
-import Config from '#config/config.js';
+import DBMS from "#dbms/dbms.js";
+import Utils from "#utils/utils.js";
+import Config from "#config/config.js";
 
 export default class Security {
-  constructor(data = {}) {
+  constructor() {
     if (!Security.instance) {
-      const {} = data;
       this.permissions = {};
       this.utils = new Utils();
       this.dbms = new DBMS();
@@ -28,7 +27,7 @@ export default class Security {
         await this.dbms.init();
       }
       const res = await this.dbms.executeNamedQuery({
-        nameQuery: 'loadPermissions',
+        nameQuery: "loadPermissions",
         params: [],
       });
       const map = {};
@@ -40,7 +39,7 @@ export default class Security {
       return map;
     } catch (error) {
       return this.utils.handleError({
-        message: 'Error cargando permisos',
+        message: "Error cargando permisos",
         errorCode: this.ERROR_CODES.DB_ERROR,
         error,
       });
@@ -49,7 +48,7 @@ export default class Security {
 
   // Normaliza un alias de perfil
   async _normalizeProfileName(profile) {
-    if (!profile || typeof profile !== 'string') return profile;
+    if (!profile || typeof profile !== "string") return profile;
     try {
       const profiles = await new Config().getProfiles();
       // Si coincide con una clave de alias, devolver el nombre real
@@ -81,22 +80,22 @@ export default class Security {
    * }
    * Devuelve resumen con estado previo/actual y la clave en el mapa en memoria.
    */
-  async changePermission(data = {}) {
+  async changePermission(data) {
     const { subsystem, className, method, profile, value } = data || {};
 
     // Validación básica de entradas
     const isNonEmptyString = (v) =>
-      typeof v === 'string' && v.trim().length > 0;
+      typeof v === "string" && v.trim().length > 0;
     if (
       !isNonEmptyString(subsystem) ||
       !isNonEmptyString(className) ||
       !isNonEmptyString(method) ||
       !isNonEmptyString(profile) ||
-      typeof value !== 'boolean'
+      typeof value !== "boolean"
     ) {
       this.utils.handleError({
         message:
-          'Parámetros inválidos: subsystem, className, method, profile (string) y value (boolean) son requeridos',
+          "Parámetros inválidos: subsystem, className, method, profile (string) y value (boolean) son requeridos",
         errorCode: this.ERROR_CODES.BAD_REQUEST,
       });
     }
@@ -109,7 +108,7 @@ export default class Security {
       // Resolver IDs y relaciones usando consulta nombrada
       const profileName = await this._normalizeProfileName(profile.trim());
       const idsRes = await this.dbms.executeNamedQuery({
-        nameQuery: 'resolveMethodPermissionRefs',
+        nameQuery: "resolveMethodPermissionRefs",
         params: {
           subsystem_name: subsystem.trim(),
           class_name: className.trim(),
@@ -168,7 +167,7 @@ export default class Security {
 
       // Estado previo usando consulta nombrada (por nombres para compatibilidad)
       const prevRes = await this.dbms.executeNamedQuery({
-        nameQuery: 'hasProfileMethod',
+        nameQuery: "hasProfileMethod",
         params: { method_name: method.trim(), profile_name: profileName },
       });
       const previous = !!prevRes?.rows?.[0]?.allowed;
@@ -176,13 +175,13 @@ export default class Security {
       if (value) {
         // Conceder permiso
         await this.dbms.executeNamedQuery({
-          nameQuery: 'grantMethodPermission',
+          nameQuery: "grantMethodPermission",
           params: { method_name: method.trim(), profile_name: profileName },
         });
       } else {
         // Revocar permiso
         await this.dbms.executeNamedQuery({
-          nameQuery: 'revokeMethodPermission',
+          nameQuery: "revokeMethodPermission",
           params: { method_name: method.trim(), profile_name: profileName },
         });
       }
@@ -198,7 +197,7 @@ export default class Security {
         current: !!value,
         changed: previous !== !!value,
         ids: { id_subsystem, id_class, id_method, id_profile },
-        action: value ? 'granted' : 'revoked',
+        action: value ? "granted" : "revoked",
       };
     } catch (error) {
       // this.utils.handleError ya lanzó; este catch es preventivo
@@ -215,7 +214,7 @@ export default class Security {
    * En ambos casos compone la clave `${id_subsystem}_${id_class}_${id_method}_${id_profile}`
    * y retorna el booleano correspondiente de this.permissions (false si no existe).
    */
-  async checkPermissionMethod(data = {}) {
+  async checkPermissionMethod(data) {
     const {
       // por IDs
       id_subsystem,
@@ -230,7 +229,7 @@ export default class Security {
     } = data || {};
 
     const isNonEmptyString = (v) =>
-      typeof v === 'string' && v.trim().length > 0;
+      typeof v === "string" && v.trim().length > 0;
     const isInt = (v) => Number.isInteger(v);
 
     // Cargar permisos en memoria si aún no están presentes
@@ -273,7 +272,7 @@ export default class Security {
         }
         const profileName = await this._normalizeProfileName(profile.trim());
         const idsRes = await this.dbms.executeNamedQuery({
-          nameQuery: 'resolveMethodPermissionRefs',
+          nameQuery: "resolveMethodPermissionRefs",
           params: {
             subsystem_name: subsystem.trim(),
             class_name: className.trim(),
@@ -291,7 +290,7 @@ export default class Security {
         ids = { id_subsystem: s, id_class: c, id_method: m, id_profile: p };
       } catch (error) {
         this.utils.handleError({
-          message: 'Error resolviendo referencias de permiso',
+          message: "Error resolviendo referencias de permiso",
           errorCode: this.ERROR_CODES.DB_ERROR,
           error,
         });
@@ -299,7 +298,7 @@ export default class Security {
     } else {
       this.utils.handleError({
         message:
-          'Parámetros inválidos: use IDs { id_subsystem, id_class, id_method, id_profile } o nombres { subsystem, className, method, profile }',
+          "Parámetros inválidos: use IDs { id_subsystem, id_class, id_method, id_profile } o nombres { subsystem, className, method, profile }",
         errorCode: this.ERROR_CODES.BAD_REQUEST,
       });
     }
@@ -324,7 +323,7 @@ export default class Security {
   async executeMethod({ className, method, params }) {
     const c = await import(`#${className}/${className}.js`);
     let i = new c.default();
-    if (i && typeof i[method] !== 'function') {
+    if (i && typeof i[method] !== "function") {
       this.utils.handleError({
         message: `Método '${method}' no encontrado en clase '${className}'`,
         errorCode: this.ERROR_CODES.NOT_FOUND,
@@ -341,16 +340,16 @@ export default class Security {
    * Devuelve información de la transacción y nombres asociados
    */
   async getTxTransaction(data) {
-    if (!data || typeof data !== 'object') {
-      console.log('invalid data: ', data);
+    if (!data || typeof data !== "object") {
+      console.log("invalid data: ", data);
       return {
-        message: 'Datos inválidos, el parámetro debe ser un objeto',
+        message: "Datos inválidos, el parámetro debe ser un objeto",
         errorCode: this.ERROR_CODES.BAD_REQUEST,
       };
     }
 
     const { tx, subsystem, className, method } = data;
-    let queryString = '';
+    let queryString = "";
     let params = [];
     if (tx) {
       queryString = `SELECT t.tx, t.description, s.name AS subsystem, c.name AS class, m.name AS method
@@ -370,7 +369,7 @@ export default class Security {
       params = [subsystem, className, method];
     } else {
       return this.utils.handleError({
-        message: 'Debe proporcionar tx o subsystem/className/method',
+        message: "Debe proporcionar tx o subsystem/className/method",
         errorCode: this.ERROR_CODES.BAD_REQUEST,
       });
     }
@@ -380,7 +379,7 @@ export default class Security {
         .then((r) => r);
       if (!res.rows || res.rows.length === 0)
         return this.utils.handleError({
-          message: 'Transacción no encontrada',
+          message: "Transacción no encontrada",
           errorCode: this.ERROR_CODES.NOT_FOUND,
         });
 
@@ -388,7 +387,7 @@ export default class Security {
       return res.rows[0];
     } catch (error) {
       return this.utils.handleError({
-        message: 'Error en getTxTransaction',
+        message: "Error en getTxTransaction",
         errorCode: this.ERROR_CODES.DB_ERROR,
         error,
       });
