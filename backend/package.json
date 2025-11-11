@@ -21,7 +21,10 @@
     "#services/*": "./src/services/*",
     "#utils/*": "./src/utils/*",
     "#dispatcher/*": "./src/dispatcher/*",
-    "#formatter/*": "./src/formatter/*"
+    "#formatter/*": "./src/formatter/*",
+    "#atx/*": "./src/business/atx/*",
+    "#bo/*": "./src/business/bo/*",
+    "#ftx/*": "./src/business/ftx/*"
   },
   "scripts": {
     "start": "node server.js",
