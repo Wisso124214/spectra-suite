@@ -1,4 +1,3 @@
-// src/components/sidebar/CustomSidebar.tsx
 import React from "react";
 import {
   Sidebar,
@@ -10,12 +9,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
-  SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Home as HomeIcon, List, GitBranch } from "lucide-react";
 import { AppSidebar as DemoAppSidebar } from "@/components/ui/app-sidebar"; // opcional demo
+import { Link } from "react-router-dom";
 
 export type MenuItem = {
   title: string;
@@ -50,13 +49,14 @@ function renderMenuItem(item: MenuItem): React.ReactNode {
   return (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild>
-        <a href={item.url ?? "#"} className="flex items-center gap-2">
+        {/* usamos Link para navegación SPA */}
+        <Link to={item.url ?? "#"} className="flex items-center gap-2">
           {item.icon &&
             React.createElement(iconMap[item.icon] ?? HomeIcon, {
               className: "w-4 h-4",
             })}
           <span>{item.title}</span>
-        </a>
+        </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );

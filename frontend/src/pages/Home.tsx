@@ -1,4 +1,3 @@
-// src/pages/Home.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomSidebar, {
@@ -6,7 +5,7 @@ import CustomSidebar, {
   type MenuItem,
 } from "../components/sidebar/sidebar";
 import type { MenuItem as MenuItemType } from "../components/sidebar/sidebar";
-import { SidebarTrigger } from "@/components/ui/sidebar"; // trigger para abrir/cerrar
+import { SERVER_URL } from "../../config";
 
 // Dummy fallback (usa éste mientras backend no está listo)
 const DUMMY_SESSION_DATA = {
@@ -30,12 +29,12 @@ const DUMMY_SESSION_DATA = {
 };
 
 type BackendRow = {
-  subsystem_id: string;
-  subsystem_name: string;
-  class_id: string;
-  class_name: string;
-  method_id: string;
-  method_name: string;
+  subsystem_id?: string;
+  subsystem_name?: string;
+  class_id?: string;
+  class_name?: string;
+  method_id?: string;
+  method_name?: string;
 };
 
 // Convierte filas planas (resultado SQL) en MenuItem[]
@@ -75,100 +74,60 @@ function rowsToMenu(rows: BackendRow[]): MenuItem[] {
   return result;
 }
 
-export default function Home() {
-  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
-  const [username, setUsername] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * Interpreta JSON jerárquico tipo:
+ * result.security = {
+ *   "Gestión de Usuarios": {
+ *     description: "...",
+ *     id: 260,
+ *     options: {
+ *       "Cambiar perfil activo": { description: "...", id: 449, tx: 2619 }
+ *     }
+ *   }
+ * }
+ *
+ * Devuelve MenuItem[]
+ */
+function securityJsonToMenu(security: any): MenuItem[] {
+  if (!security || typeof security !== "object") return [];
 
-  const navigate = useNavigate();
+  const subs: MenuItem[] = [];
 
-  // lee sessionStorage primero, luego localStorage
-  const rawSaved = sessionStorage.getItem("userData");
-  const userData = rawSaved
-    ? JSON.parse(rawSaved)
-    : { isLoggedIn: false, profile: "default", username: null };
+  for (const [className, classObj] of Object.entries(security)) {
+    const options = (classObj as any).options ?? {};
+    const methodChildren: MenuItem[] = [];
 
-  useEffect(() => {
-    if (!userData.isLoggedIn) {
-      navigate("/login");
-      return;
+    for (const [optName, optObj] of Object.entries(options)) {
+      // construye URL usando tx o id si existe (opcional)
+      let url = "#";
+      if ((optObj as any).tx) {
+        url = `/tx/${(optObj as any).tx}`;
+      } else if ((optObj as any).id) {
+        url = `/option/${(optObj as any).id}`;
+      } else {
+        // fallback slug
+        url = `/${encodeURIComponent(
+          className.toString().replace(/\s+/g, "-").toLowerCase()
+        )}/${encodeURIComponent(optName.replace(/\s+/g, "-").toLowerCase())}`;
+      }
+
+      methodChildren.push({
+        title: optName,
+        url,
+        icon: "List",
+      });
     }
 
-    setUsername(userData.username ?? null);
+    subs.push({
+      title: className,
+      children: methodChildren,
+      icon: "GitBranch",
+    });
+  }
 
-    // Mientras el backend no esté listo, queremos usar el DUMMY:
-    // estrategia: intentamos fetch; si falla o devuelve vacío usamos el DUMMY
-    const fetchMethods = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Si no quieres hacer fetch todavía (backend no listo), comenta todo este bloque
-        const res = await fetch("/toProccess", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            tx: 999, // AJUSTA cuando tu backend tenga el tx correcto
-            params: {
-              nameQuery: "getSubsystemClassesMethods",
-              params: { subsystem_name: null },
-            },
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-
-        const json = await res.json();
-        const rows: BackendRow[] = json.rows ?? json.data ?? json;
-
-        if (!Array.isArray(rows) || rows.length === 0) {
-          // backend no tiene datos -> usamos DUMMY
-          console.warn("Backend returned no rows, using DUMMY session data");
-          // transforma DUMMY_SESSION_DATA a MenuItem[]
-          setMenuItems(buildMenuFromSession(DUMMY_SESSION_DATA));
-        } else {
-          const built = rowsToMenu(rows);
-          setMenuItems(built);
-        }
-      } catch (err) {
-        // si ocurre cualquier error (endpoint no listo, CORS, etc) -> fallback DUMMY
-        console.warn("Fetch to backend failed, using DUMMY. Error:", err);
-        setError(err instanceof Error ? err.message : "Error desconocido");
-        setMenuItems(buildMenuFromSession(DUMMY_SESSION_DATA));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Llama al fetch. Si no quieres fetch aún, comenta la siguiente línea y se usará solo el DUMMY:
-    fetchMethods();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    // Layout exportado desde tu CustomSidebar ya envuelve SidebarProvider
-    <Layout defaultOpen={true}>
-      <div className="flex h-screen">
-        <CustomSidebar items={menuItems} />
-
-        <main className="flex-1 p-6">
-          <h1 className="text-2xl font-bold">
-            Bienvenido{username ? `, ${username}` : ""}
-          </h1>
-
-          {loading && <p className="mt-4">Cargando menú...</p>}
-          {error && <p className="mt-4 text-red-600">Error: {error}</p>}
-
-          <p className="mt-4">Contenido principal aqui...</p>
-        </main>
-      </div>
-    </Layout>
-  );
+  // si quieres agrupar todo bajo un único "Seguridad" o similar, podrías hacerlo;
+  // aquí devolvemos las clases como top-level items (igual que tu estructura de sidebar)
+  return subs;
 }
 
 /* Helper para transformar tu DUMMY_SESSION_DATA al mismo MenuItem[] que el sidebar espera */
@@ -201,4 +160,130 @@ function buildMenuFromSession(
     });
   }
   return items;
+}
+
+export default function Home() {
+  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [rawResponse, setRawResponse] = useState<any | null>(null); // para mostrar JSON.stringify
+
+  const navigate = useNavigate();
+
+  // lee sessionStorage primero, luego localStorage
+  const rawSaved =
+    sessionStorage.getItem("userData") ?? localStorage.getItem("userData");
+  const userData = rawSaved
+    ? JSON.parse(rawSaved)
+    : { isLoggedIn: false, profile: "default", username: null };
+
+  useEffect(() => {
+    if (!userData.isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    setUsername(userData.username ?? null);
+
+    const fetchMethods = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(SERVER_URL + "/toProcess", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            tx: 2620,
+            params: {
+              profile: userData.profile ?? "participante", // pasa el perfil actual
+            },
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        setRawResponse(json); // mostramos crudo al usuario
+
+        // 1) Si el backend responde con estructura jerárquica (result.security)
+        if (
+          json?.result?.security &&
+          typeof json.result.security === "object"
+        ) {
+          const built = securityJsonToMenu(json.result.security);
+          if (built.length > 0) {
+            setMenuItems(built);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 2) Si el backend responde con filas planas (rows / data)
+        const rows: BackendRow[] = json.rows ?? json.data ?? json;
+        if (Array.isArray(rows) && rows.length > 0) {
+          const built = rowsToMenu(rows);
+          if (built.length > 0) {
+            setMenuItems(built);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 3) Si no hay datos -> fallback a DUMMY
+        console.warn(
+          "Backend returned no usable menu, using DUMMY session data"
+        );
+        setMenuItems(buildMenuFromSession(DUMMY_SESSION_DATA));
+      } catch (err) {
+        console.warn("Fetch to backend failed, using DUMMY. Error:", err);
+        setError(err instanceof Error ? err.message : "Error desconocido");
+        setMenuItems(buildMenuFromSession(DUMMY_SESSION_DATA));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMethods();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <Layout defaultOpen={true}>
+      <div className="flex h-screen">
+        <CustomSidebar items={menuItems} />
+
+        <main className="flex-1 p-6 overflow-auto">
+          <h1 className="text-2xl font-bold">
+            Bienvenido{username ? `, ${username}` : ""}
+          </h1>
+
+          {loading && <p className="mt-4">Cargando menú...</p>}
+          {error && <p className="mt-4 text-red-600">Error: {error}</p>}
+
+          <p className="mt-4">Contenido principal aqui...</p>
+
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold">
+              Respuesta cruda del backend
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              (Se muestra JSON.stringify de lo que devuelve el fetch)
+            </p>
+            <div className="mt-2">
+              <pre className="max-h-96 overflow-auto border rounded p-3 bg-black/5">
+                {rawResponse
+                  ? JSON.stringify(rawResponse, null, 2)
+                  : "No hay respuesta aún"}
+              </pre>
+            </div>
+          </section>
+        </main>
+      </div>
+    </Layout>
+  );
 }
