@@ -20,16 +20,16 @@ export default class Dispatcher {
   }
 
   init() {
-    this.createRoutes();
+    this.createToProcess();
   }
 
-  createRoutes() {
+  createToProcess() {
     this.app.post('/toProcess', async (req, res) => {
       try {
-        const sessionMngr = new SessionManager();
+        const { getSession } = new SessionManager();
 
         // Obtener sesión
-        const currentSession = sessionMngr.getSession(req);
+        const currentSession = getSession(req);
         if (!currentSession) {
           return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
             errorCode: this.ERROR_CODES.UNAUTHORIZED,
@@ -117,6 +117,20 @@ export default class Dispatcher {
           error: error?.message || error,
         });
       }
+    });
+
+    this.app.post('/', async (req, res) => {
+      await fetch('/toProcess', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body),
+      })
+        .then((response) => response.json())
+        .then((data) => res.send(data))
+        .catch((error) => {
+          console.error('Error en /:', error);
+          res.status(500).send({ error: 'Error procesando la petición' });
+        });
     });
   }
 }
