@@ -25,6 +25,7 @@ export default class Dispatcher {
 
   createToProcess() {
     this.app.post("/toProcess", async (req, res) => {
+      console.log('Received /toProcess request with body:', req.body);
       try {
         const { getSession } = new SessionManager();
 
@@ -117,7 +118,7 @@ export default class Dispatcher {
     });
 
     this.app.post("/", async (req, res) => {
-      await fetch("/toProcess", {
+      await fetch(this.config.SERVER_URL + "/toProcess", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req.body),
@@ -126,8 +127,11 @@ export default class Dispatcher {
         .then((data) => res.send(data))
         .catch((error) => {
           console.error("Error en /:", error);
-          res.status(500).send({ error: "Error procesando la petición" });
+          res.status(this.ERROR_CODES.INTERNAL_SERVER_ERROR).send({ error: "Error procesando la petición" });
         });
+    });
+    this.app.get("/", async (req, res) => {
+      res.send('API running')
     });
   }
 }

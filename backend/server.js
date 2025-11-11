@@ -28,8 +28,8 @@ const dispatcher = new Dispatcher(app);
   }
 })()
   .then(async () => {
-    await session.init(app);
     await dispatcher.init(app);
+    await session.init(app);
     await dbms.init();
     // console.log('dbms: ', dbms.getThis());
     // console.log('dbms methods:', dbms.getAllDinamicMethodNames());

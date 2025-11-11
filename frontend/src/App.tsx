@@ -17,8 +17,9 @@ import {
 import Home from "./pages/Home";
 
 import { useState, useEffect } from "react";
+import Popup from "./components/Popup/Popup.tsx";
 
-function AppContent() {
+function AppContent({setIsShowingPopup}: {setIsShowingPopup: Function}) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
 
@@ -49,17 +50,22 @@ function AppContent() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
-      {/* <CustomToaster ... */}
     </ThemeProvider>
   );
 }
 
 function App() {
+  const [isShowingPopup, setIsShowingPopup] = useState(false);
   return (
     <>
       <Router>
         <Toaster position="top-center" />
-        <AppContent />
+        <Popup isShowingPopup={isShowingPopup} >
+          <h1 className='text-lg font-bold text-foreground'>
+            Holaaa
+          </h1>
+        </Popup>
+        <AppContent setIsShowingPopup={setIsShowingPopup} />
       </Router>
     </>
   );

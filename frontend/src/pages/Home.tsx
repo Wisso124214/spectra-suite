@@ -5,6 +5,7 @@ import CustomSidebar, {
   Layout,
   type MenuItem,
 } from "../components/sidebar/sidebar";
+import { SERVER_URL } from "../../config";
 import type { MenuItem as MenuItemType } from "../components/sidebar/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar"; // trigger para abrir/cerrar
 
@@ -14,7 +15,7 @@ const DUMMY_SESSION_DATA = {
   profile: "admin",
   subsystems: [
     {
-      name: "Gestion",
+      name: "Gestión",
       menu: {
         Usuarios: [
           { id: "u1", title: "Listar usuarios", url: "/users" },
@@ -105,24 +106,20 @@ export default function Home() {
 
       try {
         // Si no quieres hacer fetch todavía (backend no listo), comenta todo este bloque
-        const res = await fetch("/toProccess", {
+        const res = await fetch(SERVER_URL + "/toProccess", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            tx: 999, // AJUSTA cuando tu backend tenga el tx correcto
+            tx: 2620,
             params: {
-              nameQuery: "getSubsystemClassesMethods",
-              params: { subsystem_name: null },
-            },
+              profile: userData.profile
+            }
           }),
         });
 
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-
         const json = await res.json();
+        console.log(JSON.stringify(json, null, 2));
         const rows: BackendRow[] = json.rows ?? json.data ?? json;
 
         if (!Array.isArray(rows) || rows.length === 0) {
