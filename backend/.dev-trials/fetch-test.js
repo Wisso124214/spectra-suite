@@ -1,13 +1,16 @@
-import { SERVER_URL } from '#config/config.js';
+import Config from '#config/config.js';
 
-fetch(`${SERVER_URL}/register`, {
+
+const {SERVER_URL} = new Config().getConfig()
+
+fetch(`${SERVER_URL}/`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    username: 'Wisso124214',
-    email: 'wisso124214@example.com',
-    password: 'password123',
-    confirmPassword: 'password123',
+    tx: 2620,
+    params: {
+      profile: 'participante'
+    }
   }),
 })
   .then((response) => response.json())

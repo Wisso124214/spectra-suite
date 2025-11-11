@@ -14,7 +14,7 @@ import { SERVER_URL } from "../../config";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toastStyles } from "../../config";
-import Popup from "@/components/Popup/Popup";
+import Popup from "@/components/CustomPopup/Popup";
 
 export default function Login() {
   const [username, setUsername] = useState("");
