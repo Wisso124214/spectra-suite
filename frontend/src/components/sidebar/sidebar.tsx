@@ -1,3 +1,4 @@
+// src/components/sidebar/CustomSidebar.tsx
 import React from "react";
 import {
   Sidebar,
@@ -13,121 +14,94 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/ui/app-sidebar";
 import { Home as HomeIcon, List, GitBranch } from "lucide-react";
+import { AppSidebar as DemoAppSidebar } from "@/components/ui/app-sidebar"; // opcional demo
 
-// --- Tipos ---
 export type MenuItem = {
   title: string;
   url?: string;
-  icon?: string;
+  icon?: string; // clave de icono (p. ej. "Home" o "List")
   children?: MenuItem[];
   defaultOpen?: boolean;
 };
 
-// --- Icon map ---
+// mapa simple de icon keys -> componentes lucide
 const iconMap: Record<string, React.ElementType> = {
   Home: HomeIcon,
   List,
   GitBranch,
 };
 
-// --- Sidebar component ---
-export default function CustomSidebar({ items }: { items: MenuItem[] }) {
-  const renderItem = (item: MenuItem) => {
-    if (item.children && item.children.length > 0) {
-      return (
-        <SidebarGroup key={item.title}>
-          <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {item.children.map((child) =>
-                child.children && child.children.length > 0 ? (
-                  <SidebarGroup key={child.title}>
-                    <SidebarGroupLabel>{child.title}</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {child.children.map((grand) => (
-                          <SidebarMenuItem key={grand.title}>
-                            <SidebarMenuButton asChild>
-                              <a
-                                href={grand.url ?? "#"}
-                                className="flex items-center gap-2"
-                              >
-                                {grand.icon &&
-                                  React.createElement(
-                                    iconMap[grand.icon] ?? HomeIcon,
-                                    { className: "w-4 h-4" }
-                                  )}
-                                <span>{grand.title}</span>
-                              </a>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                ) : (
-                  <SidebarMenuItem key={child.title}>
-                    <SidebarMenuButton asChild>
-                      <a
-                        href={child.url ?? "#"}
-                        className="flex items-center gap-2"
-                      >
-                        {child.icon &&
-                          React.createElement(iconMap[child.icon] ?? HomeIcon, {
-                            className: "w-4 h-4",
-                          })}
-                        <span>{child.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      );
-    }
-
+// render recursivo: soporta niveles arbitrarios
+function renderMenuItem(item: MenuItem): React.ReactNode {
+  if (item.children && item.children.length > 0) {
     return (
-      <SidebarMenuItem key={item.title}>
-        <SidebarMenuButton asChild>
-          <a href={item.url ?? "#"} className="flex items-center gap-2">
-            {item.icon &&
-              React.createElement(iconMap[item.icon] ?? HomeIcon, {
-                className: "w-4 h-4",
-              })}
-            <span>{item.title}</span>
-          </a>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+      <SidebarGroup key={item.title}>
+        <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {item.children.map((child) => renderMenuItem(child))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
     );
-  };
+  }
 
   return (
-    <Layout>
-      <Sidebar>
-        <SidebarHeader>Menu</SidebarHeader>
-        <SidebarContent>
-          {items.map((it) => (
-            <React.Fragment key={it.title}>{renderItem(it)}</React.Fragment>
-          ))}
-        </SidebarContent>
-        <SidebarFooter>© 2025 </SidebarFooter>
-      </Sidebar>
-    </Layout>
+    <SidebarMenuItem key={item.title}>
+      <SidebarMenuButton asChild>
+        <a href={item.url ?? "#"} className="flex items-center gap-2">
+          {item.icon &&
+            React.createElement(iconMap[item.icon] ?? HomeIcon, {
+              className: "w-4 h-4",
+            })}
+          <span>{item.title}</span>
+        </a>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  const defaultOpen = true;
-
+export default function CustomSidebar({ items }: { items: MenuItem[] }) {
   return (
-    <SidebarProvider defaultOpen={defaultOpen} className="z-100">
-      <AppSidebar />
+    <Sidebar>
+      <SidebarHeader>Menu</SidebarHeader>
+
+      <SidebarContent>
+        {/* Si no hay items, mostramos un grupo vacío (evita crash) */}
+        {items.length === 0 ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Sin opciones</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          items.map((it) => renderMenuItem(it))
+        )}
+      </SidebarContent>
+    </Sidebar>
+  );
+}
+
+/**
+ * Layout helper: envuelve SidebarProvider y coloca SidebarTrigger en main
+ * Usa defaultOpen prop si quieres que desde el inicio esté abierto
+ */
+export function Layout({
+  children,
+  defaultOpen = true,
+}: {
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  return (
+    <SidebarProvider defaultOpen={defaultOpen}>
+      {/* opcional: DemoAppSidebar si quieres mostrar bloques estáticos */}
+      <DemoAppSidebar />
       <main>
-        <SidebarTrigger />
+        <SidebarTrigger />{" "}
+        {/* botón para abrir/cerrar, shadcn muestra atajo y trigger */}
         {children}
       </main>
     </SidebarProvider>

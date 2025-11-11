@@ -1,8 +1,8 @@
-import Session from '#session/session.js';
-import SessionManager from '#session/sessionManager.js';
-import Security from '#security/security.js';
-import Config from '#config/config.js';
-import Repository from '#repository/repository.js';
+import Session from "#session/session.js";
+import SessionManager from "#session/sessionManager.js";
+import Security from "#security/security.js";
+import Config from "#config/config.js";
+import Repository from "#repository/repository.js";
 
 export default class Dispatcher {
   constructor(app) {
@@ -24,7 +24,7 @@ export default class Dispatcher {
   }
 
   createToProcess() {
-    this.app.post('/toProcess', async (req, res) => {
+    this.app.post("/toProcess", async (req, res) => {
       try {
         const { getSession } = new SessionManager();
 
@@ -33,12 +33,12 @@ export default class Dispatcher {
         if (!currentSession) {
           return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
             errorCode: this.ERROR_CODES.UNAUTHORIZED,
-            message: 'Usuario no autenticado',
+            message: "Usuario no autenticado",
           });
         }
 
         // Payload esperado: puede venir en body o en header.data (compatibilidad)
-        const payload = req.body || JSON.parse(req.headers.data || '{}');
+        const payload = req.body || JSON.parse(req.headers.data || "{}");
 
         // Validaciones básicas de entrada
         const { tx, params } = payload || {};
@@ -50,7 +50,7 @@ export default class Dispatcher {
         } catch (err) {
           return res.status(this.ERROR_CODES.NOT_FOUND).send({
             errorCode: this.ERROR_CODES.NOT_FOUND,
-            message: 'Error. El código de transacción no es válido.',
+            message: "Error. El código de transacción no es válido.",
           });
         }
 
@@ -59,42 +59,39 @@ export default class Dispatcher {
         if (!className || !method) {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({
             errorCode: this.ERROR_CODES.BAD_REQUEST,
-            message: 'Se requieren className y method en la petición',
+            message: "Se requieren className y method en la petición",
           });
         }
 
         // Determinar profile desde la sesión activa
         const profileFromSession = currentSession.activeProfile;
 
-        const checkInput = {
+        const checkData = {
           subsystem: subsystem || null,
           className,
           method,
-          profile: payload.profile || profileFromSession || null,
+          profile: profileFromSession || null,
         };
 
-        if (!checkInput.profile) {
+        if (!checkData.profile) {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({
             errorCode: this.ERROR_CODES.BAD_REQUEST,
             message:
-              'Su sesión ha sido finalizada. Por favor inicie sesión nuevamente.',
+              "Su sesión ha sido finalizada. Por favor inicie sesión nuevamente.",
           });
         }
 
-        const perm = await this.security.checkPermissionMethod(checkInput);
-        // checkPermissionMethod puede devolver false o un objeto { hasPermission }
-        const hasPermission =
-          perm === false ? false : Boolean(perm && perm.hasPermission);
+        const perm = await this.security.checkPermissionMethod(checkData);
 
-        if (!hasPermission) {
+        if (perm && !perm.hasPermission) {
           return res.status(this.ERROR_CODES.FORBIDDEN).send({
             errorCode: this.ERROR_CODES.FORBIDDEN,
-            message: 'No tiene permisos para ejecutar este método',
+            message: "No tiene permisos para ejecutar este método",
             permission: perm.hasPermission,
           });
         }
 
-        const objectParams = JSON.parse(params || '{}');
+        const objectParams = JSON.parse(params || "{}");
         // Ejecutar el método solicitado
         const execResult = await this.security.executeMethod({
           className,
@@ -110,28 +107,26 @@ export default class Dispatcher {
             this.security.ERROR_CODES &&
             this.security.ERROR_CODES.INTERNAL_SERVER_ERROR) ||
           500;
-        console.error('Error en /toProcess:', error?.message || error);
+        console.error("Error en /toProcess:", error?.message || error);
         return res.status(code).send({
           errorCode: code,
-          message: 'Error procesando la petición',
+          message: "Error procesando la petición",
           error: error?.message || error,
         });
       }
     });
 
-    this.app.post('/', async (req, res) => {
-      await fetch('/toProcess', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    this.app.post("/", async (req, res) => {
+      await fetch("/toProcess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req.body),
       })
         .then((response) => response.json())
         .then((data) => res.send(data))
         .catch((error) => {
-          console.error('Error en /:', error);
-          res
-            .status(this.ERROR_CODES.INTERNAL_SERVER_ERROR)
-            .send({ error: 'Error procesando la petición' });
+          console.error("Error en /:", error);
+          res.status(500).send({ error: "Error procesando la petición" });
         });
     });
   }
