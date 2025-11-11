@@ -2,6 +2,7 @@ import { pool } from '#config/secret-config.js';
 import Config from '#config/config.js';
 import Utils from '#utils/utils.js';
 import Formatter from '#formatter/formatter.js';
+import { parseMOP } from '#atx/parse-mop.js';
 
 export default class DBMS {
   constructor(validatorInstance = null) {
@@ -9,6 +10,7 @@ export default class DBMS {
     this.config = new Config();
     this.validator = validatorInstance;
     this.formatter = new Formatter();
+    this.parseMOP = parseMOP;
 
     if (!DBMS.instance) {
       this.pool = pool;
@@ -100,6 +102,25 @@ export default class DBMS {
     try {
       return await client.query(queryString, params);
     } catch (error) {
+      // Global instrumentation: if a transaction-related unique violation occurs,
+      // print detailed context to help locate the call-site.
+      try {
+        if (
+          (error && error.code === '23505') ||
+          (typeof queryString === 'string' &&
+            queryString.includes('public."transaction"'))
+        ) {
+          const info = {
+            code: error && error.code,
+            detail: error && error.detail,
+            message: error && error.message,
+            query: queryString,
+            params,
+            stack: new Error().stack,
+          };
+          // suppressed debug output in normal runs
+        }
+      } catch (e) {}
       this.utils.handleError({
         message: error.message || 'Error ejecutando la consulta',
         errorCode: this.ERROR_CODES.DB_ERROR,

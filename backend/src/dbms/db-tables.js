@@ -15,7 +15,7 @@ const tables = {
     name: 'The name of the menu',
     description: 'A brief description of the menu',
     id_parent:
-      'The ID of the parent menu (if any). To embed menus inside other menus',
+      'The ID of the parent menu (if any). This is required to insert menus within other menus. Only the child menus must have this field (the "id_parent" must be the ID of the parent menu).',
   },
   method: {
     name: 'The name of the method',
