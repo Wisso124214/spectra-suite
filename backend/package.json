@@ -57,6 +57,7 @@
     "module-resolver": "^1.0.0",
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.2",
+    "nodemon": "^3.1.10",
     "pg": "^8.16.3",
     "resend": "^6.1.0"
   },

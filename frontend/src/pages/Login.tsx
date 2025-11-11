@@ -30,22 +30,53 @@ export default function Login() {
     }
   }, [selectedProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleProfileSelected = (message = "") => {
+  const handleProfileSelected = async (message = "") => {
     setIsPopupOpen(false);
     toast.success(message || "Inicio de sesión exitoso.", toastStyles);
-    // crear el objeto con toda la info que quieras guardar
-    const userData = {
-      isLoggedIn: true,
-      profile: selectedProfile || null,
-      username: username || null,
-      // puedes agregar más campos si lo necesitas (token, roles, etc.)
-    };
 
-    sessionStorage.setItem("userData", JSON.stringify(userData));
+    console.log("Selected profile:", selectedProfile);
 
-    setTimeout(() => {
-      navigate("/home");
-    }, 1000);
+    await fetch(SERVER_URL + "/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        activeProfile: selectedProfile,
+      }),
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        console.log("User data response:", response);
+
+        if (!response.errorCode) {
+          const userData = {
+            isLoggedIn: true,
+            profile: selectedProfile || null,
+            username: username || null,
+          };
+
+          sessionStorage.setItem("userData", JSON.stringify(userData));
+          setTimeout(() => {
+            navigate("/home");
+          }, 1000);
+        } else {
+          toast.error(
+            response.message ||
+              "Error del servidor. Intente de nuevo más tarde.",
+            toastStyles
+          );
+        }
+      })
+      .catch(() => {
+        toast.error(
+          "Error al obtener datos del usuario. Por favor, intente más tarde.",
+          toastStyles
+        );
+      });
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {

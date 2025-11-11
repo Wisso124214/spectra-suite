@@ -321,6 +321,7 @@ export default class Security {
   }
 
   async executeMethod({ className, method, params }) {
+    console.log(JSON.stringify({ className, method, params }));
     const c = await import(`#${className}/${className}.js`);
     let i = new c.default();
     if (i && typeof i[method] !== "function") {
@@ -331,6 +332,7 @@ export default class Security {
     }
     const r = await i[method](params);
     i = null;
+    console.log("Execution result:", r);
     return r;
   }
 

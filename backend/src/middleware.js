@@ -1,7 +1,7 @@
-import express from 'express';
-import session from 'express-session';
-import bodyParser from 'body-parser';
-import cors from 'cors';
+import express from "express";
+import session from "express-session";
+import bodyParser from "body-parser";
+import cors from "cors";
 
 let app = null;
 
@@ -10,7 +10,7 @@ do {
     const newApp = express();
     newApp.use(
       cors({
-        origin: ['http://localhost:5173'],
+        origin: ["http://localhost:5173"],
         credentials: true,
       })
     );
@@ -18,7 +18,7 @@ do {
     newApp.use(express.urlencoded({ extended: true }));
     newApp.use(
       session({
-        secret: 'your-secret-key',
+        secret: "your-secret-key",
         resave: false,
         saveUninitialized: false,
       })

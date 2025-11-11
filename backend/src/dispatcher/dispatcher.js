@@ -25,12 +25,12 @@ export default class Dispatcher {
 
   createToProcess() {
     this.app.post("/toProcess", async (req, res) => {
-      console.log('Received /toProcess request with body:', req.body);
       try {
         const { getSession } = new SessionManager();
 
         // Obtener sesión
         const currentSession = getSession(req);
+        console.log("Current Session:", currentSession);
         if (!currentSession) {
           return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
             errorCode: this.ERROR_CODES.UNAUTHORIZED,
@@ -44,6 +44,7 @@ export default class Dispatcher {
         // Validaciones básicas de entrada
         const { tx, params } = payload || {};
 
+        console.log("tx:", tx, params);
         let transactionData = null;
 
         try {
@@ -57,6 +58,7 @@ export default class Dispatcher {
 
         const { subsystem, className, method } = transactionData;
 
+        console.log(JSON.stringify(transactionData, null, 2));
         if (!className || !method) {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({
             errorCode: this.ERROR_CODES.BAD_REQUEST,
@@ -83,6 +85,7 @@ export default class Dispatcher {
         }
 
         const perm = await this.security.checkPermissionMethod(checkData);
+        console.log("Permission check:", perm);
 
         if (perm && !perm.hasPermission) {
           return res.status(this.ERROR_CODES.FORBIDDEN).send({
@@ -92,13 +95,18 @@ export default class Dispatcher {
           });
         }
 
-        const objectParams = JSON.parse(params || "{}");
+        console.log("Method parameters:", params);
+        let objectParams = {};
+        if (typeof params === "string")
+          objectParams = JSON.parse(params || "{}");
+        else objectParams = params || {};
         // Ejecutar el método solicitado
         const execResult = await this.security.executeMethod({
           className,
           method,
           params: objectParams,
         });
+        console.log("Execution result:", execResult);
 
         return res.send({ ok: true, result: execResult });
       } catch (error) {
@@ -112,7 +120,7 @@ export default class Dispatcher {
         return res.status(code).send({
           errorCode: code,
           message: "Error procesando la petición",
-          error: error?.message || error,
+          error: JSON.stringify(error),
         });
       }
     });
@@ -127,11 +135,13 @@ export default class Dispatcher {
         .then((data) => res.send(data))
         .catch((error) => {
           console.error("Error en /:", error);
-          res.status(this.ERROR_CODES.INTERNAL_SERVER_ERROR).send({ error: "Error procesando la petición" });
+          res
+            .status(this.ERROR_CODES.INTERNAL_SERVER_ERROR)
+            .send({ error: "Error procesando la petición" });
         });
     });
     this.app.get("/", async (req, res) => {
-      res.send('API running')
+      res.send("API running");
     });
   }
 }
