@@ -41,7 +41,8 @@ export default function Login() {
       // puedes agregar más campos si lo necesitas (token, roles, etc.)
     };
 
-    localStorage.setItem("userData", JSON.stringify(userData));
+    sessionStorage.setItem("userData", JSON.stringify(userData));
+
     setTimeout(() => {
       navigate("/home");
     }, 1000);

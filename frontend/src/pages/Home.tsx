@@ -1,10 +1,14 @@
+// src/pages/Home.tsx
 import { useEffect, useState } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
-import CustomSidebar from "../components/sidebar/sidebar";
-import type { MenuItem } from "../components/sidebar/sidebar";
+import CustomSidebar, {
+  Layout,
+  type MenuItem,
+} from "../components/sidebar/sidebar";
+import type { MenuItem as MenuItemType } from "../components/sidebar/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar"; // trigger para abrir/cerrar
 
-// --- Dummy data ---
+// Dummy fallback (usa éste mientras backend no está listo)
 const DUMMY_SESSION_DATA = {
   username: "usuario123",
   profile: "admin",
@@ -22,19 +26,152 @@ const DUMMY_SESSION_DATA = {
         ],
       },
     },
-    {
-      name: "Operaciones",
-      menu: {
-        Pedidos: [
-          { id: "p1", title: "Todos los pedidos", url: "/orders" },
-          { id: "p2", title: "Crear pedido", url: "/orders/new" },
-        ],
-        Inventario: [{ id: "i1", title: "Stock", url: "/stock" }],
-      },
-    },
   ],
 };
 
+type BackendRow = {
+  subsystem_id: string;
+  subsystem_name: string;
+  class_id: string;
+  class_name: string;
+  method_id: string;
+  method_name: string;
+};
+
+// Convierte filas planas (resultado SQL) en MenuItem[]
+function rowsToMenu(rows: BackendRow[]): MenuItem[] {
+  const subsystemsMap = new Map<string, Map<string, MenuItem[]>>();
+
+  for (const r of rows) {
+    const subName = r.subsystem_name ?? "unknown";
+    const className = r.class_name ?? "unknown";
+    const methodName = r.method_name ?? "unnamed";
+
+    if (!subsystemsMap.has(subName)) subsystemsMap.set(subName, new Map());
+    const classesMap = subsystemsMap.get(subName)!;
+
+    if (!classesMap.has(className)) classesMap.set(className, []);
+    const methodsArr = classesMap.get(className)!;
+
+    const url = `/${encodeURIComponent(subName)}/${encodeURIComponent(
+      className
+    )}/${encodeURIComponent(methodName)}`;
+    methodsArr.push({ title: methodName, url, icon: "List" });
+  }
+
+  const result: MenuItem[] = [];
+  for (const [subName, classesMap] of subsystemsMap.entries()) {
+    const classChildren: MenuItem[] = [];
+    for (const [className, methodsArr] of classesMap.entries()) {
+      classChildren.push({
+        title: className,
+        children: methodsArr,
+        icon: "GitBranch",
+      });
+    }
+    result.push({ title: subName, children: classChildren, icon: "Home" });
+  }
+
+  return result;
+}
+
+export default function Home() {
+  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
+  // lee sessionStorage primero, luego localStorage
+  const rawSaved = sessionStorage.getItem("userData");
+  const userData = rawSaved
+    ? JSON.parse(rawSaved)
+    : { isLoggedIn: false, profile: "default", username: null };
+
+  useEffect(() => {
+    if (!userData.isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    setUsername(userData.username ?? null);
+
+    // Mientras el backend no esté listo, queremos usar el DUMMY:
+    // estrategia: intentamos fetch; si falla o devuelve vacío usamos el DUMMY
+    const fetchMethods = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Si no quieres hacer fetch todavía (backend no listo), comenta todo este bloque
+        const res = await fetch("/toProccess", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            tx: 999, // AJUSTA cuando tu backend tenga el tx correcto
+            params: {
+              nameQuery: "getSubsystemClassesMethods",
+              params: { subsystem_name: null },
+            },
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const rows: BackendRow[] = json.rows ?? json.data ?? json;
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+          // backend no tiene datos -> usamos DUMMY
+          console.warn("Backend returned no rows, using DUMMY session data");
+          // transforma DUMMY_SESSION_DATA a MenuItem[]
+          setMenuItems(buildMenuFromSession(DUMMY_SESSION_DATA));
+        } else {
+          const built = rowsToMenu(rows);
+          setMenuItems(built);
+        }
+      } catch (err) {
+        // si ocurre cualquier error (endpoint no listo, CORS, etc) -> fallback DUMMY
+        console.warn("Fetch to backend failed, using DUMMY. Error:", err);
+        setError(err instanceof Error ? err.message : "Error desconocido");
+        setMenuItems(buildMenuFromSession(DUMMY_SESSION_DATA));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Llama al fetch. Si no quieres fetch aún, comenta la siguiente línea y se usará solo el DUMMY:
+    fetchMethods();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    // Layout exportado desde tu CustomSidebar ya envuelve SidebarProvider
+    <Layout defaultOpen={true}>
+      <div className="flex h-screen">
+        <CustomSidebar items={menuItems} />
+
+        <main className="flex-1 p-6">
+          <h1 className="text-2xl font-bold">
+            Bienvenido{username ? `, ${username}` : ""}
+          </h1>
+
+          {loading && <p className="mt-4">Cargando menú...</p>}
+          {error && <p className="mt-4 text-red-600">Error: {error}</p>}
+
+          <p className="mt-4">Contenido principal aqui...</p>
+        </main>
+      </div>
+    </Layout>
+  );
+}
+
+/* Helper para transformar tu DUMMY_SESSION_DATA al mismo MenuItem[] que el sidebar espera */
 function buildMenuFromSession(
   sessionData: typeof DUMMY_SESSION_DATA
 ): MenuItem[] {
@@ -46,7 +183,7 @@ function buildMenuFromSession(
     >) {
       const methods = subsystem.menu[submenuKey];
       if (!methods) continue;
-      const methodChildren: MenuItem[] = methods.map((m) => ({
+      const methodChildren: MenuItem[] = methods.map((m: any) => ({
         title: m.title,
         url: m.url,
         icon: "List",
@@ -64,69 +201,4 @@ function buildMenuFromSession(
     });
   }
   return items;
-}
-
-export default function Home() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [username, setUsername] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const saved = sessionStorage.getItem("userData");
-  const userData = saved ? JSON.parse(saved) : { isLoggedIn: false };
-
-  if (!userData.isLoggedIn) {
-    navigate("/login");
-  }
-
-  //   useEffect(() => {
-  //     const fetchMenu = async () => {
-  //       try {
-  //         // Llamada al backend
-  //         const res = await fetch("/toProccess", {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify({
-  //             tx: 401,
-  //             params: {
-  //               nameQuery: "getMenusOptionsProfile",
-  //               params: { profile_name: "Bustos" },
-  //             },
-  //           }),
-  //           credentials: "include",
-  //         });
-
-  //         if (!res.ok) throw new Error("Error al cargar el menú");
-
-  //         const data = await res.json();
-
-  //         // Aquí debes transformar 'data' al formato de MenuItem[]
-  //         const builtMenu = buildMenuFromSession(data);
-  //         setMenuItems(builtMenu);
-
-  //         // Opcional: guardar username si viene del backend
-  //         setUsername(data.username ?? userData.username);
-  //       } catch (error) {
-  //         console.error("Error cargando menú:", error);
-  //       }
-  //     };
-
-  //     fetchMenu();
-  //   }, []);
-
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen">
-        <aside className="w-64 border-r">
-          <CustomSidebar items={menuItems} />
-        </aside>
-
-        <main className="flex-1 p-6">
-          <h1 className="text-2xl font-bold">
-            Bienvenido{username ? `, ${username}` : ""}
-          </h1>
-          <p className="mt-4">Contenido principal aqui...</p>
-        </main>
-      </div>
-    </SidebarProvider>
-  );
 }
