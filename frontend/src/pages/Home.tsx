@@ -1,27 +1,27 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CustomSidebar, {
   Layout,
   type MenuItem,
-} from "../components/sidebar/sidebar";
-import { SERVER_URL } from "../../config";
-import type { MenuItem as MenuItemType } from "../components/sidebar/sidebar";
+} from '../components/sidebar/sidebar';
+import { SERVER_URL } from '../../config';
+import type { MenuItem as MenuItemType } from '../components/sidebar/sidebar';
 
 // Dummy fallback (usa éste mientras backend no está listo)
 const DUMMY_SESSION_DATA = {
-  username: "usuario123",
-  profile: "admin",
+  username: 'usuario123',
+  profile: 'admin',
   subsystems: [
     {
-      name: "Gestión",
+      name: 'Gestión',
       menu: {
         Usuarios: [
-          { id: "u1", title: "Listar usuarios", url: "/users" },
-          { id: "u2", title: "Crear usuario", url: "/users/new" },
+          { id: 'u1', title: 'Listar usuarios', url: '/users' },
+          { id: 'u2', title: 'Crear usuario', url: '/users/new' },
         ],
         Roles: [
-          { id: "r1", title: "Listar roles", url: "/roles" },
-          { id: "r2", title: "Crear rol", url: "/roles/new" },
+          { id: 'r1', title: 'Listar roles', url: '/roles' },
+          { id: 'r2', title: 'Crear rol', url: '/roles/new' },
         ],
       },
     },
@@ -42,9 +42,9 @@ function rowsToMenu(rows: BackendRow[]): MenuItem[] {
   const subsystemsMap = new Map<string, Map<string, MenuItem[]>>();
 
   for (const r of rows) {
-    const subName = r.subsystem_name ?? "unknown";
-    const className = r.class_name ?? "unknown";
-    const methodName = r.method_name ?? "unnamed";
+    const subName = r.subsystem_name ?? 'unknown';
+    const className = r.class_name ?? 'unknown';
+    const methodName = r.method_name ?? 'unnamed';
 
     if (!subsystemsMap.has(subName)) subsystemsMap.set(subName, new Map());
     const classesMap = subsystemsMap.get(subName)!;
@@ -55,7 +55,7 @@ function rowsToMenu(rows: BackendRow[]): MenuItem[] {
     const url = `/${encodeURIComponent(subName)}/${encodeURIComponent(
       className
     )}/${encodeURIComponent(methodName)}`;
-    methodsArr.push({ title: methodName, url, icon: "List" });
+    methodsArr.push({ title: methodName, url, icon: 'List' });
   }
 
   const result: MenuItem[] = [];
@@ -65,10 +65,10 @@ function rowsToMenu(rows: BackendRow[]): MenuItem[] {
       classChildren.push({
         title: className,
         children: methodsArr,
-        icon: "GitBranch",
+        icon: 'GitBranch',
       });
     }
-    result.push({ title: subName, children: classChildren, icon: "Home" });
+    result.push({ title: subName, children: classChildren, icon: 'Home' });
   }
 
   return result;
@@ -86,13 +86,13 @@ export default function Home() {
   useEffect(() => {
     // lee sessionStorage primero, luego localStorage
     const rawSaved =
-      sessionStorage.getItem("userData") ?? localStorage.getItem("userData");
+      sessionStorage.getItem('userData') ?? localStorage.getItem('userData');
     const userData = rawSaved
       ? JSON.parse(rawSaved)
-      : { isLoggedIn: false, profile: "", username: null };
+      : { isLoggedIn: false, profile: '', username: null };
 
     if (!userData.isLoggedIn) {
-      navigate("/login");
+      navigate('/login');
       return;
     }
 
@@ -103,16 +103,16 @@ export default function Home() {
       setError(null);
 
       try {
-        const res = await fetch(SERVER_URL + "/toProcess", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch(SERVER_URL + '/toProcess', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             tx: 2620,
             params: {
-              profile: userData.profile ?? "participante", // pasa el perfil actual
+              profile: userData.profile ?? 'participante', // pasa el perfil actual
             },
           }),
-          credentials: "include",
+          credentials: 'include',
         });
 
         const json = await res.json();
@@ -120,15 +120,15 @@ export default function Home() {
 
         // 1) Si el backend responde con estructura jerárquica (result.security)
       } catch (err) {
-        console.warn("Fetch to backend failed, using DUMMY. Error:", err);
-        setError(err instanceof Error ? err.message : "Error desconocido");
+        console.warn('Fetch to backend failed, using DUMMY. Error:', err);
+        setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {
         setLoading(false);
       }
     };
 
     if (userData?.profile) fetchMethods();
-    else navigate("/login");
+    else navigate('/login');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -139,7 +139,7 @@ export default function Home() {
 
         <main className="flex-1 p-6 overflow-auto">
           <h1 className="text-2xl font-bold">
-            Bienvenido{username ? `, ${username}` : ""}
+            Bienvenido{username ? `, ${username}` : ''}
           </h1>
 
           {loading && <p className="mt-4">Cargando menú...</p>}
@@ -158,7 +158,7 @@ export default function Home() {
               <pre className="max-h-96 overflow-auto border rounded p-3 bg-black/5">
                 {rawResponse
                   ? JSON.stringify(rawResponse, null, 2)
-                  : "No hay respuesta aún"}
+                  : 'No hay respuesta aún'}
               </pre>
             </div>
           </section>

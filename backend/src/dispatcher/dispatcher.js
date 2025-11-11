@@ -1,8 +1,8 @@
-import Session from "#session/session.js";
-import SessionManager from "#session/sessionManager.js";
-import Security from "#security/security.js";
-import Config from "#config/config.js";
-import Repository from "#repository/repository.js";
+import Session from '#session/session.js';
+import SessionManager from '#session/sessionManager.js';
+import Security from '#security/security.js';
+import Config from '#config/config.js';
+import Repository from '#repository/repository.js';
 
 export default class Dispatcher {
   constructor(app) {
@@ -24,27 +24,26 @@ export default class Dispatcher {
   }
 
   createToProcess() {
-    this.app.post("/toProcess", async (req, res) => {
+    this.app.post('/toProcess', async (req, res) => {
       try {
         const { getSession } = new SessionManager();
 
         // Obtener sesión
         const currentSession = getSession(req);
-        console.log("Current Session:", currentSession);
+        console.log('Current Session:', currentSession);
         if (!currentSession) {
           return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
             errorCode: this.ERROR_CODES.UNAUTHORIZED,
-            message: "Usuario no autenticado",
+            message: 'Usuario no autenticado',
           });
         }
 
         // Payload esperado: puede venir en body o en header.data (compatibilidad)
-        const payload = req.body || JSON.parse(req.headers.data || "{}");
+        const payload = req.body || JSON.parse(req.headers.data || '{}');
 
         // Validaciones básicas de entrada
         const { tx, params } = payload || {};
 
-        console.log("tx:", tx, params);
         let transactionData = null;
 
         try {
@@ -52,17 +51,15 @@ export default class Dispatcher {
         } catch (err) {
           return res.status(this.ERROR_CODES.NOT_FOUND).send({
             errorCode: this.ERROR_CODES.NOT_FOUND,
-            message: "Error. El código de transacción no es válido.",
+            message: 'Error. El código de transacción no es válido.',
           });
         }
-
         const { subsystem, className, method } = transactionData;
 
-        console.log(JSON.stringify(transactionData, null, 2));
         if (!className || !method) {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({
             errorCode: this.ERROR_CODES.BAD_REQUEST,
-            message: "Se requieren className y method en la petición",
+            message: 'Se requieren className y method en la petición',
           });
         }
 
@@ -80,25 +77,22 @@ export default class Dispatcher {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({
             errorCode: this.ERROR_CODES.BAD_REQUEST,
             message:
-              "Su sesión ha sido finalizada. Por favor inicie sesión nuevamente.",
+              'Su sesión ha sido finalizada. Por favor inicie sesión nuevamente.',
           });
         }
-
         const perm = await this.security.checkPermissionMethod(checkData);
-        console.log("Permission check:", perm);
 
         if (perm && !perm.hasPermission) {
           return res.status(this.ERROR_CODES.FORBIDDEN).send({
             errorCode: this.ERROR_CODES.FORBIDDEN,
-            message: "No tiene permisos para ejecutar este método",
+            message: 'No tiene permisos para ejecutar este método',
             permission: perm.hasPermission,
           });
         }
 
-        console.log("Method parameters:", params);
         let objectParams = {};
-        if (typeof params === "string")
-          objectParams = JSON.parse(params || "{}");
+        if (typeof params === 'string')
+          objectParams = JSON.parse(params || '{}');
         else objectParams = params || {};
         // Ejecutar el método solicitado
         const execResult = await this.security.executeMethod({
@@ -106,9 +100,11 @@ export default class Dispatcher {
           method,
           params: objectParams,
         });
-        console.log("Execution result:", execResult);
 
-        return res.send({ ok: true, result: execResult });
+        return res.send({
+          ok: true,
+          result: { ...execResult, ...currentSession },
+        });
       } catch (error) {
         // Manejo genérico de errores
         const code =
@@ -116,32 +112,32 @@ export default class Dispatcher {
             this.security.ERROR_CODES &&
             this.security.ERROR_CODES.INTERNAL_SERVER_ERROR) ||
           500;
-        console.error("Error en /toProcess:", error?.message || error);
+        console.error('Error en /toProcess:', error?.message || error);
         return res.status(code).send({
           errorCode: code,
-          message: "Error procesando la petición",
+          message: 'Error procesando la petición',
           error: JSON.stringify(error),
         });
       }
     });
 
-    this.app.post("/", async (req, res) => {
-      await fetch(this.config.SERVER_URL + "/toProcess", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    this.app.post('/', async (req, res) => {
+      await fetch(this.config.SERVER_URL + '/toProcess', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req.body),
       })
         .then((response) => response.json())
         .then((data) => res.send(data))
         .catch((error) => {
-          console.error("Error en /:", error);
+          console.error('Error en /:', error);
           res
             .status(this.ERROR_CODES.INTERNAL_SERVER_ERROR)
-            .send({ error: "Error procesando la petición" });
+            .send({ error: 'Error procesando la petición' });
         });
     });
-    this.app.get("/", async (req, res) => {
-      res.send("API running");
+    this.app.get('/', async (req, res) => {
+      res.send('API running');
     });
   }
 }

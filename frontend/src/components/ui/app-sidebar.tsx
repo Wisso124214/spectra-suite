@@ -1,4 +1,4 @@
-"use client";
+`"use client";
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
 
 import {
@@ -66,3 +66,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+`;

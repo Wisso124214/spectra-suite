@@ -200,65 +200,61 @@ export default class Session {
         this.PROFILES?.PARTICIPANT?.name || userData.activeProfile;
     }
 
-    // Usar queries nombradas para insertar y recuperar el usuario
+    // Usar executeJsonTransaction para que todas las operaciones de registro
+    // (insertUser, getUserWhere, setUserProfile) se ejecuten en una sola transacción
     if (!this.dbms.queries) {
       await this.dbms.init();
     }
-    return this.dbms
-      .executeNamedQuery({
-        nameQuery: 'insertUser',
-        params: [
+
+    try {
+      const jsonParams = {
+        insertUser: [
           userData.username,
           userData.password,
           userData.email,
           userData.status,
           userData.register_date,
         ],
-      })
-      .then(async () => {
-        // Recuperar el usuario insertado para validar
-        const fetchRes = await this.dbms.executeNamedQuery({
-          nameQuery: 'getUserWhere',
-          params: [userData.username],
-        });
-        const postedUser = fetchRes?.rows?.[0];
-        if (!postedUser) {
-          return {
-            errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
-            message: 'Error al registrar usuario',
-          };
-        }
+        getUserWhere: [userData.username],
+        setUserProfile: [userData.username, userData.activeProfile],
+      };
 
-        try {
-          // Asegurar que las queries estén cargadas
-          if (!this.dbms.queries) {
-            await this.dbms.init();
-          }
+      const results = await this.dbms.executeJsonTransaction(
+        jsonParams,
+        'Error ejecutando la transacción de registro'
+      );
 
-          // Usar la consulta nombrada definida en queries.yaml: 'setUserProfile'
-          await this.dbms.executeNamedQuery({
-            nameQuery: 'setUserProfile',
-            params: [username, userData.activeProfile],
-          });
-
-          return {
-            message: `${this.utils.toUpperCaseFirstLetter(userData.activeProfile)}, ${userData.username} registrado exitosamente`,
-          };
-        } catch (error) {
-          console.error('Error al establecer el perfil de usuario:', error);
-          return {
-            errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
-            message: 'Error al establecer el perfil del usuario',
-          };
-        }
-      })
-      .catch((error) => {
-        console.error('Error al registrar usuario:', error);
+      // results es un array con los resultados en el mismo orden: [insertUserRes, getUserWhereRes, setUserProfileRes]
+      const fetchRes = results && results[1];
+      const postedUser = fetchRes?.rows?.[0];
+      if (!postedUser) {
         return {
           errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
           message: 'Error al registrar usuario',
         };
-      });
+      }
+
+      return {
+        message: `${this.utils.toUpperCaseFirstLetter(
+          userData.activeProfile
+        )}, ${userData.username} registrado exitosamente`,
+      };
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      // Si utils.handleError fue usado internamente, error.message es JSON stringificado
+      try {
+        const parsed = JSON.parse(error.message);
+        return {
+          errorCode: parsed.errorCode || this.ERROR_CODES.INTERNAL_SERVER_ERROR,
+          message: parsed.message || 'Error al registrar usuario',
+        };
+      } catch (_e) {
+        return {
+          errorCode: this.ERROR_CODES.INTERNAL_SERVER_ERROR,
+          message: 'Error al registrar usuario',
+        };
+      }
+    }
   };
 
   forgotPassword = async ({ userData, origin }) => {
@@ -368,7 +364,9 @@ export default class Session {
       );
 
       return {
-        message: `Contraseña actualizada correctamente para el usuario ${dataUser?.username || ''}. Por favor inicie sesión con su nueva contraseña.`,
+        message: `Contraseña actualizada correctamente para el usuario ${
+          dataUser?.username || ''
+        }. Por favor inicie sesión con su nueva contraseña.`,
         redirect: '/login',
       };
     } catch (error) {
