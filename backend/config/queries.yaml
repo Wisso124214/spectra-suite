@@ -106,7 +106,7 @@
       orderArray: ['profile_name']
   },
   'getMenusOptionsProfiles': {
-    query: 'SELECT m.id_parent, m.id AS menu_id, m.name AS menu_name, o.tx, o.id AS option_id, o.name AS option_name, p.id AS profile_id, p.name AS profile_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id JOIN public."option_profile" op ON o.id = op.id_option JOIN public."profile" p ON op.id_profile = p.id',
+    query: 'SELECT m.id_parent, m.id AS menu_id, m.name AS menu_name, o.tx, o.id AS option_id, o.name AS option_name, o.description, p.id AS profile_id, p.name AS profile_name FROM public."menu" m JOIN public."option_menu" om ON m.id = om.id_menu JOIN public."option" o ON om.id_option = o.id JOIN public."option_profile" op ON o.id = op.id_option JOIN public."profile" p ON op.id_profile = p.id',
     structure_params: { },
     orderArray: []
   },

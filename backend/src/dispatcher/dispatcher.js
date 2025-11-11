@@ -129,7 +129,9 @@ export default class Dispatcher {
         .then((data) => res.send(data))
         .catch((error) => {
           console.error('Error en /:', error);
-          res.status(500).send({ error: 'Error procesando la petición' });
+          res
+            .status(this.ERROR_CODES.INTERNAL_SERVER_ERROR)
+            .send({ error: 'Error procesando la petición' });
         });
     });
   }

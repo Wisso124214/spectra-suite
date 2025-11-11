@@ -20,14 +20,40 @@ export default class Repository extends DBMS {
     return `"${field}"`;
   }
 
+  // Helper to log transaction-related query errors with stack and context
+  _logTxError(err, query, params, context = {}) {
+    try {
+      const info = {
+        where: context.where || null,
+        subsystem: context.subsystem || null,
+        className: context.className || null,
+        method: context.method || null,
+        ids: context.ids || null,
+        code: err && err.code,
+        detail: err && err.detail,
+        message: err && err.message,
+        query: typeof query === 'string' ? query : String(query),
+        params: Array.isArray(params) ? params : params,
+        stack: new Error().stack,
+      };
+      // suppressed debug output in normal runs
+    } catch (e) {
+      // swallow logging errors
+      try {
+        // suppressed debug fallback
+      } catch (ee) {}
+    }
+  }
+
   async _withTransaction(
     callback,
     errorMessage = 'Error en transacción genérica'
   ) {
+    // Wrapper to run a callback inside a DB transaction using DBMS.beginTransaction/commit/rollback
     const client = await this.beginTransaction();
     if (!client) {
       return this.utils.handleError({
-        message: 'No se pudo iniciar transacción',
+        message: 'No se pudo iniciar la transacción',
         errorCode: this.ERROR_CODES.DB_ERROR,
       });
     }
@@ -36,14 +62,20 @@ export default class Repository extends DBMS {
       await this.commitTransaction(client);
       return result;
     } catch (error) {
-      await this.rollbackTransaction(client);
+      try {
+        await this.rollbackTransaction(client);
+      } catch (e) {
+        // ignore rollback errors but keep original error handling
+      }
       return this.utils.handleError({
         message: errorMessage,
         errorCode: this.ERROR_CODES.DB_ERROR,
         error,
       });
     } finally {
-      await this.endTransaction(client);
+      try {
+        await this.endTransaction(client);
+      } catch (e) {}
     }
   }
 
@@ -51,17 +83,31 @@ export default class Repository extends DBMS {
     // Asumimos campo único 'name' si está presente; si no, usamos primer key
     const keys = Object.keys(fields);
     if (keys.length === 0) return null;
-    const uniqueKey = keys.includes('name') ? 'name' : keys[0];
     const tableQ = `public.${this._q(table)}`;
-    const keyQ = this._q(uniqueKey);
-    const sel = `SELECT id FROM ${tableQ} WHERE ${keyQ} = $1 LIMIT 1;`;
-    const selRes = await client.query(sel, [fields[uniqueKey]]);
-    if (selRes.rows && selRes.rows.length > 0) return selRes.rows[0].id;
+    // Decide whether to use composite fields for lookup (useful for menus where id_subsystem/id_parent matter)
+    const useComposite =
+      keys.includes('id_subsystem') || keys.includes('id_parent');
+    if (useComposite) {
+      const where = keys
+        .map((k, i) => `${this._q(k)} = $${i + 1}`)
+        .join(' AND ');
+      const sel = `SELECT id FROM ${tableQ} WHERE ${where} LIMIT 1;`;
+      const selVals = keys.map((k) => fields[k]);
+      const selRes = await client.query(sel, selVals);
+      if (selRes.rows && selRes.rows.length > 0) return selRes.rows[0].id;
+    } else {
+      // fallback: use single unique key 'name' when present, else first key
+      const uniqueKey = keys.includes('name') ? 'name' : keys[0];
+      const keyQ = this._q(uniqueKey);
+      const sel = `SELECT id FROM ${tableQ} WHERE ${keyQ} = $1 LIMIT 1;`;
+      const selRes = await client.query(sel, [fields[uniqueKey]]);
+      if (selRes.rows && selRes.rows.length > 0) return selRes.rows[0].id;
+    }
     const cols = keys.map((k) => this._q(k)).join(', ');
     const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
-    const vals = keys.map((k) => fields[k]);
+    const insVals = keys.map((k) => fields[k]);
     const ins = `INSERT INTO ${tableQ} (${cols}) VALUES (${placeholders}) RETURNING id;`;
-    const insRes = await client.query(ins, vals);
+    const insRes = await client.query(ins, insVals);
     return insRes.rows[0].id;
   }
 
@@ -73,6 +119,10 @@ export default class Repository extends DBMS {
     const vals = keys.map((k) => fields[k]);
     const selRes = await client.query(sel, vals);
     if (!selRes.rows || selRes.rows.length === 0) {
+      // Dev debug: log join insertions for troubleshooting menu/option/profile mapping
+      try {
+        // suppressed join-insert debug
+      } catch (e) {}
       const cols = keys.map((k) => this._q(k)).join(', ');
       const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
       const ins = `INSERT INTO ${tableQ} (${cols}) VALUES (${placeholders});`;
@@ -125,30 +175,133 @@ export default class Repository extends DBMS {
   async _resolveTxFromMethodRef(methodRef, subsystemFallback = null) {
     if (!methodRef || typeof methodRef !== 'object') return null;
     if (methodRef.tx) return methodRef.tx; // si ya trae tx numérico
-    const { subsystem, className, method } = methodRef;
+    const subsystemName =
+      methodRef.subsystem || methodRef.subsystemName || null;
+    const classNameResolved = methodRef.className || methodRef.class || null;
+    const methodName = methodRef.method || null;
     const data = {
-      subsystem: subsystem || subsystemFallback,
-      className,
-      method,
-      description: method,
+      subsystem: subsystemName || subsystemFallback,
+      className: classNameResolved,
+      method: methodName,
+      description: methodName,
     };
     if (!data.subsystem || !data.className || !data.method) return null;
+    // If a client was supplied in methodRef (internal callers can pass client to avoid nested transactions)
+    if (methodRef.__client) {
+      const txRes = await this.setTxTransactionWithClient(
+        methodRef.__client,
+        data
+      );
+      return txRes?.data?.tx || null;
+    }
     const txRes = await this.setTxTransaction(data);
     return txRes?.data?.tx || null;
   }
 
+  // Internal variant of setTxTransaction that uses an existing client (no new transaction)
+  async setTxTransactionWithClient(client, data) {
+    // data: { subsystem, className, method, description? }
+    if (!client || !data || typeof data !== 'object')
+      return this.utils.handleError({
+        message: 'Datos inválidos para setTxTransactionWithClient',
+        errorCode: this.ERROR_CODES.BAD_REQUEST,
+      });
+    const { subsystem, className, method } = data;
+    if (!subsystem || !className || !method)
+      return this.utils.handleError({
+        message: 'Faltan campos subsystem/className/method',
+        errorCode: this.ERROR_CODES.BAD_REQUEST,
+      });
+    // Resolve ids
+    const sRes = await client.query(
+      'SELECT id FROM public."subsystem" WHERE name = $1 LIMIT 1;',
+      [subsystem]
+    );
+    const cRes = await client.query(
+      'SELECT id FROM public."class" WHERE name = $1 LIMIT 1;',
+      [className]
+    );
+    const mRes = await client.query(
+      'SELECT id FROM public."method" WHERE name = $1 LIMIT 1;',
+      [method]
+    );
+    if (!sRes.rows.length || !cRes.rows.length || !mRes.rows.length)
+      return this.utils.handleError({
+        message: 'No se encontraron subsystem/class/method',
+        errorCode: this.ERROR_CODES.NOT_FOUND,
+      });
+    const subsystemId = sRes.rows[0].id;
+    const classId = cRes.rows[0].id;
+    const methodId = mRes.rows[0].id;
+    // Check existing
+    const checkRes = await client.query(
+      'SELECT tx, description FROM public."transaction" WHERE id_subsystem = $1 AND id_class = $2 AND id_method = $3 LIMIT 1;',
+      [subsystemId, classId, methodId]
+    );
+    if (checkRes.rows && checkRes.rows.length > 0)
+      return { message: 'Transacción ya existente', data: checkRes.rows[0] };
+    const descValue = data.description || `${subsystem}.${className}.${method}`;
+    try {
+      const inserted = await client.query(
+        'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+        [descValue, subsystemId, classId, methodId]
+      );
+      if (inserted && inserted.rows && inserted.rows.length > 0) {
+        return {
+          message: 'Transacción creada correctamente',
+          data: { tx: inserted.rows[0].tx, description: descValue },
+        };
+      }
+    } catch (e) {
+      // Log error context and try select fallback
+      try {
+        this._logTxError(
+          e,
+          'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+          [descValue, subsystemId, classId, methodId],
+          {
+            where: 'setTxTransactionWithClient:insert',
+            subsystem,
+            className,
+            method,
+          }
+        );
+      } catch (le) {}
+      if (e && (e.code === '23505' || e.code === '42P10')) {
+        try {
+          const chk = await client.query(
+            'SELECT tx, description FROM public."transaction" WHERE id_subsystem = $1 AND id_class = $2 AND id_method = $3 LIMIT 1;',
+            [subsystemId, classId, methodId]
+          );
+          if (chk.rows && chk.rows.length > 0)
+            return { message: 'Transacción ya existente', data: chk.rows[0] };
+        } catch (se) {
+          // fallthrough
+        }
+      }
+      throw e;
+    }
+    // Fallback select
+    const checkResAgain = await client.query(
+      'SELECT tx, description FROM public."transaction" WHERE id_subsystem = $1 AND id_class = $2 AND id_method = $3 LIMIT 1;',
+      [subsystemId, classId, methodId]
+    );
+    if (checkResAgain.rows && checkResAgain.rows.length > 0)
+      return {
+        message: 'Transacción ya existente',
+        data: checkResAgain.rows[0],
+      };
+    return this.utils.handleError({
+      message: 'No se pudo crear o recuperar la transacción (client)',
+      errorCode: this.ERROR_CODES.DB_ERROR,
+    });
+  }
+
   async _ensureOptionWithTx(client, { name, description, tx }) {
     if (!name) return null;
-    // Si se provee tx, reutilizar opción existente con ese tx (evita violación de unicidad)
-    if (tx !== undefined && tx !== null) {
-      const byTx = await client.query(
-        'SELECT id FROM public."option" WHERE tx = $1 LIMIT 1;',
-        [tx]
-      );
-      if (byTx.rows && byTx.rows.length > 0) {
-        return byTx.rows[0].id;
-      }
-    }
+    // No reutilizar opción únicamente por tx: las opciones son entidades por nombre
+    // y pueden compartir la misma transacción (tx) si llaman al mismo método.
+    // Buscar por nombre primero y actualizar su tx si es necesario.
     const sel = 'SELECT id, tx FROM public."option" WHERE name = $1 LIMIT 1;';
     const selRes = await client.query(sel, [name]);
     if (selRes.rows && selRes.rows.length > 0) {
@@ -710,7 +863,9 @@ export default class Repository extends DBMS {
                   let txValue = optionNode?.tx;
                   if (!txValue && optionNode?.method) {
                     txValue = await this._resolveTxFromMethodRef(
-                      optionNode.method,
+                      Object.assign({}, optionNode.method || {}, {
+                        __client: client,
+                      }),
                       subsystem
                     );
                   }
@@ -744,7 +899,9 @@ export default class Repository extends DBMS {
                 let txValue = optionNode?.tx;
                 if (!txValue && optionNode?.method) {
                   txValue = await this._resolveTxFromMethodRef(
-                    optionNode.method,
+                    Object.assign({}, optionNode.method || {}, {
+                      __client: client,
+                    }),
                     subsystem
                   );
                 }
@@ -807,11 +964,15 @@ export default class Repository extends DBMS {
       let txValue = data.tx;
       if (!txValue && (data.subsystem || data.className || data.method)) {
         txValue = await this._resolveTxFromMethodRef(
-          {
-            subsystem: data.subsystem,
-            className: data.className,
-            method: data.method,
-          },
+          Object.assign(
+            {},
+            {
+              subsystem: data.subsystem,
+              className: data.className,
+              method: data.method,
+              __client: client,
+            }
+          ),
           data.subsystem
         );
       }
@@ -889,7 +1050,9 @@ export default class Repository extends DBMS {
                   let txValue = optionNode?.tx;
                   if (!txValue && optionNode?.method) {
                     txValue = await this._resolveTxFromMethodRef(
-                      optionNode.method,
+                      Object.assign({}, optionNode.method || {}, {
+                        __client: client,
+                      }),
                       subsystem
                     );
                   }
@@ -925,7 +1088,9 @@ export default class Repository extends DBMS {
                 let txValue = optionNode?.tx;
                 if (!txValue && optionNode?.method) {
                   txValue = await this._resolveTxFromMethodRef(
-                    optionNode.method,
+                    Object.assign({}, optionNode.method || {}, {
+                      __client: client,
+                    }),
                     subsystem
                   );
                 }
@@ -1526,10 +1691,41 @@ export default class Repository extends DBMS {
               if (!txCheckRes.rows || txCheckRes.rows.length === 0) {
                 const txKey = `${subsystem}.${className}.${method}`;
                 const txDesc = methodsObj[method]?.description || txKey;
-                await client.query(
-                  'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
-                  [txDesc, subsystemId, classId, methodId]
-                );
+                try {
+                  await client.query(
+                    'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                    [txDesc, subsystemId, classId, methodId]
+                  );
+                } catch (err) {
+                  // Log detailed info when duplicate-key occurs or other DB errors
+                  if (err && err.code === '23505') {
+                    this._logTxError(
+                      err,
+                      'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                      [txDesc, subsystemId, classId, methodId],
+                      {
+                        where: 'setSubsystemsClassesMethods:isSubsystemsConst',
+                        subsystem,
+                        className,
+                        method,
+                      }
+                    );
+                    // duplicate key - another process inserted it concurrently, ignore
+                  } else {
+                    this._logTxError(
+                      err,
+                      'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                      [txDesc, subsystemId, classId, methodId],
+                      {
+                        where: 'setSubsystemsClassesMethods:isSubsystemsConst',
+                        subsystem,
+                        className,
+                        method,
+                      }
+                    );
+                    throw err;
+                  }
+                }
               }
               // Ensure method_profile according to allowedProfiles
               const allowed = methodsObj[method]?.allowedProfiles || [];
@@ -1623,10 +1819,40 @@ export default class Repository extends DBMS {
             );
             if (!txCheckRes.rows || txCheckRes.rows.length === 0) {
               const txKey = `${subsystem}.${className}.${method}`;
-              await client.query(
-                'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
-                [txKey, subsystemId, classId, methodId]
-              );
+              try {
+                await client.query(
+                  'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                  [txKey, subsystemId, classId, methodId]
+                );
+              } catch (err) {
+                if (err && err.code === '23505') {
+                  this._logTxError(
+                    err,
+                    'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                    [txKey, subsystemId, classId, methodId],
+                    {
+                      where: 'setSubsystemsClassesMethods:compact',
+                      subsystem,
+                      className,
+                      method,
+                    }
+                  );
+                  // duplicate key - another process inserted it concurrently, ignore
+                } else {
+                  this._logTxError(
+                    err,
+                    'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                    [txKey, subsystemId, classId, methodId],
+                    {
+                      where: 'setSubsystemsClassesMethods:compact',
+                      subsystem,
+                      className,
+                      method,
+                    }
+                  );
+                  throw err;
+                }
+              }
             }
           }
         }
@@ -1857,6 +2083,10 @@ export default class Repository extends DBMS {
       });
 
       // Revisar si ya existe transaction (tabla transaction con PK serial en columna tx)
+      // Debug: log the resolved ids before checking/creating transaction
+      try {
+        // suppressed tx-resolution debug
+      } catch (e) {}
       const checkRes = await client.query(
         'SELECT tx, description FROM public."transaction" WHERE id_subsystem = $1 AND id_class = $2 AND id_method = $3 LIMIT 1;',
         [subsystemId, classId, methodId]
@@ -1866,15 +2096,79 @@ export default class Repository extends DBMS {
       }
       const descValue =
         data.description || `${subsystem}.${className}.${method}`;
-      const inserted = await client.query(
-        'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
-        [descValue, subsystemId, classId, methodId]
+      // Intentar insertar la transacción con ON CONFLICT para evitar excepciones por race
+      let inserted;
+      try {
+        inserted = await client.query(
+          'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+          [descValue, subsystemId, classId, methodId]
+        );
+      } catch (e) {
+        // If INSERT fails due to concurrency (duplicate key) try to SELECT the existing row
+        if (e && (e.code === '23505' || e.code === '42P10')) {
+          // Log the initial insert failure with full context so we can trace race conditions
+          try {
+            this._logTxError(
+              e,
+              'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+              [descValue, subsystemId, classId, methodId],
+              {
+                where: 'setTxTransaction:insert',
+                subsystem,
+                className,
+                method,
+              }
+            );
+          } catch (logErr) {}
+          try {
+            const chk = await client.query(
+              'SELECT tx, description FROM public."transaction" WHERE id_subsystem = $1 AND id_class = $2 AND id_method = $3 LIMIT 1;',
+              [subsystemId, classId, methodId]
+            );
+            if (chk.rows && chk.rows.length > 0)
+              return { message: 'Transacción ya existente', data: chk.rows[0] };
+          } catch (se) {
+            // fallthrough to rethrow original error if select also fails
+          }
+        }
+        // log unexpected insert failure and rethrow
+        try {
+          this._logTxError(
+            e,
+            'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+            [descValue, subsystemId, classId, methodId],
+            {
+              where: 'setTxTransaction:insert:unexpected',
+              subsystem,
+              className,
+              method,
+            }
+          );
+        } catch (ee) {}
+        throw e;
+      }
+      if (inserted && inserted.rows && inserted.rows.length > 0) {
+        return {
+          message: 'Transacción creada correctamente',
+          data: { tx: inserted.rows[0].tx, description: descValue },
+        };
+      }
+      // Si no se insertó (conflict), recuperar la fila existente
+      const checkResAgain = await client.query(
+        'SELECT tx, description FROM public."transaction" WHERE id_subsystem = $1 AND id_class = $2 AND id_method = $3 LIMIT 1;',
+        [subsystemId, classId, methodId]
       );
-      const txValue = inserted?.rows?.[0]?.tx;
-      return {
-        message: 'Transacción creada correctamente',
-        data: { tx: txValue, description: descValue },
-      };
+      if (checkResAgain.rows && checkResAgain.rows.length > 0) {
+        return {
+          message: 'Transacción ya existente',
+          data: checkResAgain.rows[0],
+        };
+      }
+      // Fallback: devolver error si no se pudo recuperar
+      return this.utils.handleError({
+        message: 'No se pudo crear o recuperar la transacción',
+        errorCode: this.ERROR_CODES.DB_ERROR,
+      });
     }, 'Error en setTxTransaction');
   }
 
@@ -2239,16 +2533,26 @@ export default class Repository extends DBMS {
                 [newSubsystemId, newClassId, newMethodId]
               );
               if (!txCheckRes.rows || txCheckRes.rows.length === 0) {
-                await client.query(
-                  'INSERT INTO public."transaction" (tx, description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4, $5);',
-                  [
-                    txKey,
-                    m.description || txKey,
-                    newSubsystemId,
-                    newClassId,
-                    newMethodId,
-                  ]
-                );
+                // Insert transaction without forcing the tx column (serial PK).
+                // Use SELECT-before-INSERT semantics already above; still guard against races.
+                try {
+                  await client.query(
+                    'INSERT INTO public."transaction" (description, id_subsystem, id_class, id_method) VALUES ($1, $2, $3, $4) RETURNING tx;',
+                    [
+                      m.description || txKey,
+                      newSubsystemId,
+                      newClassId,
+                      newMethodId,
+                    ]
+                  );
+                } catch (e) {
+                  // If another session inserted the same transaction concurrently, ignore duplicate-key and continue
+                  if (e && e.code === '23505') {
+                    // noop - already created by concurrent process
+                  } else {
+                    throw e;
+                  }
+                }
               }
             }
           }

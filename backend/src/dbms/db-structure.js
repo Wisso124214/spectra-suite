@@ -521,7 +521,7 @@ export const menus = {
         },
         'Crear Usuario': {
           description: 'Crear un nuevo Usuario',
-          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN],
+          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN, DB_ADMIN],
           method: {
             subsystem: 'security',
             class: 'dbms',
@@ -538,7 +538,7 @@ export const menus = {
         },
         'Actualizar Usuario': {
           description: 'Actualizar un Usuario existente',
-          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN],
+          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN, DB_ADMIN],
           method: {
             subsystem: 'security',
             class: 'dbms',
@@ -556,7 +556,7 @@ export const menus = {
         },
         'Eliminar Usuario': {
           description: 'Eliminar un Usuario existente',
-          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN],
+          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN, DB_ADMIN],
           method: {
             subsystem: 'security',
             class: 'dbms',
@@ -571,7 +571,7 @@ export const menus = {
         },
         'Listar Usuarios': {
           description: 'Listar todos los Usuarios',
-          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN],
+          allowedProfiles: [SUPER_ADMIN, SECURITY_ADMIN, DB_ADMIN],
           method: {
             subsystem: 'security',
             class: 'dbms',
