@@ -34,8 +34,6 @@ export default function Login() {
     setIsPopupOpen(false);
     toast.success(message || "Inicio de sesión exitoso.", toastStyles);
 
-    console.log("Selected profile:", selectedProfile);
-
     await fetch(SERVER_URL + "/login", {
       method: "POST",
       headers: {
@@ -50,8 +48,6 @@ export default function Login() {
     })
       .then((res) => res.json())
       .then((response) => {
-        console.log("User data response:", response);
-
         if (!response.errorCode) {
           const userData = {
             isLoggedIn: true,

@@ -1,12 +1,15 @@
 import Session from "#session/session.js";
 import SessionManager from "./sessionManager.js";
 import Config from "#config/config.js";
+import DBMS from "#dbms/dbms.js";
 
 export const createRoutes = async (app) => {
   const session = new Session();
   const sessionMngr = new SessionManager();
   const config = new Config().getConfig();
   const ERROR_CODES = config.ERROR_CODES;
+  const dbms = new DBMS();
+
   const { existSession, createAndUpdateSession, destroySession } = sessionMngr;
 
   app.get("/users", async (req, res) => {
