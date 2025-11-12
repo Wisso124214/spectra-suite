@@ -103,7 +103,8 @@ export default class Dispatcher {
 
         return res.send({
           ok: true,
-          result: { ...execResult, ...currentSession },
+          result: execResult,
+          userData: currentSession,
         });
       } catch (error) {
         // Manejo genérico de errores

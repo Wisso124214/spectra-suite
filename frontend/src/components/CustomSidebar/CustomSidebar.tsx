@@ -47,12 +47,12 @@ const iconMap: Record<string, React.ElementType> = {
 // render recursivo: soporta niveles arbitrarios
 function renderMenuItem(
   item: MenuItem,
-  index: number,
+  key: string,
   deep = 0
 ): React.ReactNode {
   if (item.children && item.children.length > 0) {
     return deep < 2 ? (
-      <Collapsible key={index} className='group/collapsible'>
+      <Collapsible key={key} className='group/collapsible'>
         <SidebarGroup>
           <SidebarGroupLabel
             className='text-(--text-color) text-sm hover:bg-accent'
@@ -63,35 +63,40 @@ function renderMenuItem(
                 React.createElement(iconMap[item.icon] ?? HomeIcon, {
                   className: 'w-4 h-4 mr-2',
                 })}
-              <span>{item.title}</span>
+              <span className='w-full text-left text-wrap wrap-anywhere line-clamp-1 '>
+                {item.title}
+              </span>
               <ChevronDown className='ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90' />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
           <CollapsibleContent className='data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down flex flex-col gap-2 overflow-hidden transition-all duration-300'>
             <div className='border-l pl-2 w-full ml-2'>
               <SidebarMenu className='rounded-lg'>
-                <SidebarMenuItem>
-                  {item.children.map((child) =>
-                    renderMenuItem(child, index, deep + 1)
-                  )}
-                </SidebarMenuItem>
+                {item.children.map((child, ci) =>
+                  renderMenuItem(child, `${key}-${ci}`, deep + 1)
+                )}
               </SidebarMenu>
             </div>
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
     ) : (
-      <SidebarMenuItem key={index} className='rounded-lg w-full'>
+      <SidebarMenuItem
+        key={key}
+        className={'rounded-lg max-w-full ' + (deep === 2 ? 'mr-2' : 'w-full')}
+      >
         <DropdownMenu>
-          <DropdownMenuTrigger asChild className='focus:bg-transparent'>
-            <SidebarMenuButton asChild className='focus:bg-transparent'>
-              <div className='flex w-full justify-between items-center border-t-2 mt-1'>
-                <div className='flex items-center'>
+          <DropdownMenuTrigger asChild className='focus:bg-transparent w-full'>
+            <SidebarMenuButton asChild className='focus:bg-transparent w-full'>
+              <div className='w-full flex justify-between items-center border-t-2 mt-1 pr-2 rounded-lg'>
+                <div className='flex items-center  w-full'>
                   {item.icon &&
                     React.createElement(iconMap[item.icon] ?? HomeIcon, {
                       className: 'w-4 h-4 mr-2',
                     })}
-                  <span>{item.title}</span>
+                  <span className=' w-full text-wrap wrap-anywhere line-clamp-1 font-semibold'>
+                    {item.title}
+                  </span>
                 </div>
                 <MoreHorizontal />
               </div>
@@ -108,8 +113,8 @@ function renderMenuItem(
                 listStyleType: 'none',
               }}
             >
-              {item.children.map((child) =>
-                renderMenuItem(child, index, deep + 1)
+              {item.children.map((child, ci) =>
+                renderMenuItem(child, `${key}-dm-${ci}`, deep + 1)
               )}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -119,7 +124,13 @@ function renderMenuItem(
   }
 
   return (
-    <SidebarMenuItem className='rounded-lg w-full' key={index}>
+    <SidebarMenuItem
+      className={'rounded-lg ' + (deep > 2 ? 'w-full' : 'mr-2')}
+      key={key}
+      style={{
+        listStyleType: 'none',
+      }}
+    >
       <SidebarMenuButton asChild>
         {/* usamos Link para navegación SPA */}
         <Link to={item.url ?? '#'} className='flex items-center gap-2'>
@@ -127,7 +138,9 @@ function renderMenuItem(
             React.createElement(iconMap[item.icon] ?? HomeIcon, {
               className: 'w-4 h-4',
             })}
-          <span>{item.title}</span>
+          <span className='w-full text-wrap wrap-anywhere line-clamp-1 '>
+            {item.title}
+          </span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -157,7 +170,7 @@ export default function CustomSidebar({ data }: { data: MenuData }) {
                 {
                   icon: 'Home',
                   title:
-                    'Task A1.1 aslkdjalskdjlzxkdjzlkxjclzkxjclkzxjzalksjdlkasjdlksjdsdjkjasdkjasldjaslkdjaslkjalksdjalksjdlkasjdaslkdjalskdjlzxkdjzlkxjclzkxjclkzxjzalksjdlkasjdlksjdsdjkjasdkjasldjaslkdjaslkjalksdjalksjdlkasjdaslkdjalskdjlzxkdjzlkxjclzkxjclkzxjzalksjdlkasjdlksjdsdjkjasdkjasldjaslkdjaslkjalksdjalksjdlkasjdaslkdjalskdjlzxkdjzlkxjclzkxjclkzxjzalksjdlkasjdlksjdsdjkjasdkjasldjaslkdjaslkjalksdjalksjdlkasjd',
+                    'Task A1.1 alskd jalskdj alskdj alksjd laksjdlasj dlasdloaj slkdals djaskljd',
                   url: '/projects/a/subproject-a1/task-a1-1',
                   children: [
                     {
@@ -214,7 +227,7 @@ export default function CustomSidebar({ data }: { data: MenuData }) {
         <SubsystemSelect subsystems={subsystems} />
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className='mt-3'>
         {data.length === 0 ? (
           <SidebarGroup>
             <SidebarGroupLabel>Sin opciones</SidebarGroupLabel>
@@ -224,7 +237,7 @@ export default function CustomSidebar({ data }: { data: MenuData }) {
           </SidebarGroup>
         ) : (
           // Object.values(data).map((it) => renderMenuItem(it))
-          items.map((it, i) => renderMenuItem(it, i))
+          items.map((it, i) => renderMenuItem(it, `root-${i}`))
         )}
       </SidebarContent>
     </Sidebar>

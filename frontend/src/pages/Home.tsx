@@ -6,7 +6,8 @@ import { SERVER_URL } from '../../config';
 import { type MenuData } from '../components/CustomSidebar/CustomSidebar';
 
 export default function Home() {
-  const [menuData, setMenuData] = useState<MenuData[]>([]);
+  // MenuData ya está definido como MenuItem[] en CustomSidebar
+  const [menuData, setMenuData] = useState<MenuData>([]);
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export default function Home() {
         const json = await res.json();
         setMenuData(json.result || []);
         setRawResponse(json.result);
+        console.log(json.userData);
 
         // 1) Si el backend responde con estructura jerárquica (result.security)
       } catch (err) {
