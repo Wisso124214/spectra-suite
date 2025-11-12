@@ -67,7 +67,7 @@ export default function Register() {
             JSON.stringify({ isLoggedIn: true })
           );
           setTimeout(() => {
-            navigate("/dishes");
+            navigate("/login");
           }, 2000);
         } else {
           toast.error(
