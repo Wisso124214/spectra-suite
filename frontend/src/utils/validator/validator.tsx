@@ -25,9 +25,9 @@ export async function validateUsername(value: string): Promise<string> {
     return `El nombre de usuario no puede tener más de ${validationValues.user.username.max} caracteres.`;
   }
 
-  const res = await fetch(`${SERVER_URL}/users`, { method: 'GET' });
-  const users: { username: string }[] = await res.json();
-  const userExists = users.some((user) => user.username === value);
+  const res = await fetch(`${SERVER_URL}/usernames`, { method: 'GET' });
+  const usernames: Array<string> = await res.json();
+  const userExists = usernames.includes(value);
   if (userExists) {
     return 'El nombre de usuario ya está en uso.';
   }
@@ -47,12 +47,6 @@ export async function validateEmail(email: string): Promise<string> {
     return 'El email no es válido';
   }
 
-  const res = await fetch(`${SERVER_URL}/users`, { method: 'GET' });
-  const users: { email: string }[] = await res.json();
-  const emailInUse = users.some((user) => user.email === email);
-  if (emailInUse) {
-    return 'El email ya está en uso.';
-  }
   return '';
 }
 
