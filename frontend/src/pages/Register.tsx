@@ -66,7 +66,7 @@ export default function Register() {
           );
           setUserData({ username });
           setTimeout(() => {
-            navigate('/dishes');
+            navigate('/home');
           }, 2000);
         } else {
           toast.error(
