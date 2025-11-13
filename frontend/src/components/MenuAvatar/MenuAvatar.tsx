@@ -11,9 +11,11 @@ import { SERVER_URL } from '../../../config';
 import toast from 'react-hot-toast';
 import { toastStyles } from '../../../config';
 import { useNavigate } from 'react-router-dom';
+import useAppContext from '@/hooks/useAppContext';
 
 export function MenuAvatar() {
   const navigate = useNavigate();
+  const { setUserData } = useAppContext();
 
   return (
     <DropdownMenu>
@@ -48,7 +50,7 @@ export function MenuAvatar() {
               .then((res) => {
                 if (!res.errorCode) {
                   toast.success('Sesión cerrada con éxito.', toastStyles);
-                  localStorage.removeItem('userData');
+                  setUserData(null);
                   setTimeout(() => {
                     navigate('/login');
                   }, 1000);

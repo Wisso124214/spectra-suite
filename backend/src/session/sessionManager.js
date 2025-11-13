@@ -4,6 +4,7 @@ export default class SessionManager {
   createAndUpdateSession = (req, data) => {
     this.createSession(req);
     this.updateSession(req, data);
+    console.log('Session data after createAndUpdate:', req.session.data);
   };
 
   createSession = (req) => {

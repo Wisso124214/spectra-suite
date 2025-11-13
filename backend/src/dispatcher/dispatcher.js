@@ -30,13 +30,13 @@ export default class Dispatcher {
 
         // Obtener sesión
         const currentSession = getSession(req);
-        console.log('Current Session:', currentSession);
         if (!currentSession) {
           return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
             errorCode: this.ERROR_CODES.UNAUTHORIZED,
             message: 'Usuario no autenticado',
           });
         }
+        console.log('Current session:', currentSession);
 
         // Payload esperado: puede venir en body o en header.data (compatibilidad)
         const payload = req.body || JSON.parse(req.headers.data || '{}');
@@ -46,6 +46,12 @@ export default class Dispatcher {
 
         let transactionData = null;
 
+        console.log(
+          'Received /toProcess request with tx:',
+          tx,
+          'and params:',
+          params
+        );
         try {
           transactionData = await this.security.getTxTransaction({ tx });
         } catch (err) {
@@ -54,6 +60,7 @@ export default class Dispatcher {
             message: 'Error. El código de transacción no es válido.',
           });
         }
+
         const { subsystem, className, method } = transactionData;
 
         if (!className || !method) {
@@ -72,6 +79,8 @@ export default class Dispatcher {
           method,
           profile: profileFromSession || null,
         };
+
+        console.log('Check data for permission:', checkData);
 
         if (!checkData.profile) {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({

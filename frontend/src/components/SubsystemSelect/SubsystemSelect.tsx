@@ -38,7 +38,7 @@ export function SubsystemSelect({ subsystems = [] }: { subsystems: string[] }) {
             aria-expanded={open}
             className='w-[200px] justify-between'
           >
-            {value ? capitalize(value) : 'Subsistema...'}
+            {value ? capitalize(value) : capitalize(subsystems[0])}
             <ChevronsUpDown className='opacity-50' />
           </Button>
         </PopoverTrigger>
