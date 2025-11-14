@@ -141,6 +141,8 @@ export default function CreateUser({
     }
 
     try {
+      console.log('data:', username, email, password, selectedPerfil);
+
       const res = await fetch(SERVER_URL + '/register', {
         method: 'POST',
         headers: {
