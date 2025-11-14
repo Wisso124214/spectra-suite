@@ -18,48 +18,43 @@ export default function ChangeProfile({
   setIsPopupOpen: (isOpen: boolean) => void;
 }) {
   const [profilesState, setProfilesState] = useState<string[]>([]);
-  const { fetchToProcess, userData } = useAppContext();
+  const { setUserData, fetchToProcess, userData } = useAppContext();
   const [selectedProfile, setSelectedProfile] = useState('');
-  const { setUserData } = useAppContext();
+  const [activeProfile, setActiveProfile] = useState(userData?.profile || '');
 
   useEffect(() => {
-    if (isPopupOpen) {
-      if (selectedProfile) {
-        setUserData((prevData) => ({
-          ...prevData,
-          profile: selectedProfile,
-        }));
-      }
+    if (userData && userData.profile) {
+      setActiveProfile(userData.profile || '');
     }
-  }, [isPopupOpen, selectedProfile]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userData]);
 
   useEffect(() => {
-    if (isPopupOpen) {
-      if (userData?.profile) {
-        handleProfileSelected(
-          `Bienvenido ${userData?.profile}, ${userData?.username}.`
-        );
-      }
+    console.log('selectedProfile', selectedProfile);
+    if (isPopupOpen && selectedProfile && profilesState.length > 0) {
+      handleProfileSelected(
+        `Bienvenido ${selectedProfile}, ${userData?.username}.`
+      );
     }
-  }, [isPopupOpen, userData?.profile]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isPopupOpen, selectedProfile, profilesState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleProfileSelected = async (message = '') => {
     setIsPopupOpen(false);
     toast.success(message || 'Inicio de sesión exitoso.', toastStyles);
 
-    console.log('login', userData?.profile);
+    console.log('handleProfileSelected', selectedProfile);
     fetchToProcess!({
       tx: 2590,
       params: JSON.stringify({
         userData: {
           username: userData?.username,
-          activeProfile: userData?.profile,
+          activeProfile: selectedProfile,
         },
       }),
     })
       .then(async (response) => {
         const data = await response.json();
         if (response.ok) {
+          setUserData(data.userData);
           toast.success(
             data.result.message || 'Perfil cambiado con éxito.',
             toastStyles
@@ -81,33 +76,49 @@ export default function ChangeProfile({
   };
 
   useEffect(() => {
-    if (isPopupOpen) {
+    console.log('profilesState', profilesState);
+    if (isPopupOpen && profilesState.length === 0) {
       console.log('Fetching user profiles for', userData?.username);
-      if (!profilesState) {
-        fetchToProcess!({
-          tx: 2580,
-          params: JSON.stringify({
-            nameQuery: 'getUserProfiles',
-            params: {
-              username: userData?.username,
-            },
-          }),
-        })
-          .then(async (response) => {
+      console.log('userData', userData);
+      console.log('fetchToProcess', fetchToProcess);
+      // const style = 'background-color: yellow; color: black; font-style: bold;';
+      // console.log('%cThis message is styled!', style);
+      fetchToProcess!({
+        tx: 2580,
+        params: JSON.stringify({
+          nameQuery: 'getUserProfiles',
+          params: {
+            username: userData?.username,
+          },
+        }),
+      })
+        .then((res) => res.json())
+        .then(async (response) => {
+          if (response.ok) {
             const data = await response.json();
-            console.log(data.result.rows);
+            console.log('----------------------');
+            console.log('profiles fetched: ', data.result.rows);
+            console.log('----------------------');
             const profiles = data.result.rows.map(
               (row: any) => row.profile_name
             );
+            console.log('profiles mapped: ', profiles);
             setProfilesState(profiles || []);
-          })
-          .catch(() => {
+          } else {
+            console.error('Error fetching user profiles');
             toast.error(
               'No se pudieron cargar los perfiles. Por favor, intente de nuevo.',
               toastStyles
             );
-          });
-      }
+          }
+        })
+        .catch(() => {
+          console.error('Error fetching user profiles');
+          toast.error(
+            'No se pudieron cargar los perfiles. Por favor, intente de nuevo.',
+            toastStyles
+          );
+        });
     }
   }, [isPopupOpen, profilesState]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -121,7 +132,10 @@ export default function ChangeProfile({
             Seleccione a continuación su perfil:
           </h1>
           <Select onValueChange={setSelectedProfile}>
-            <SelectTrigger className='min-w-[200px] capitalize'>
+            <SelectTrigger
+              className='min-w-[200px] capitalize'
+              value={selectedProfile || activeProfile}
+            >
               <SelectValue placeholder='Seleccione un perfil' />
             </SelectTrigger>
             <SelectContent>

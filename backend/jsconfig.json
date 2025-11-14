@@ -18,7 +18,8 @@
     "*.js",
     "config/secret-config.js",
     "config/config.js",
-    "config/secret-config-example.js"
+    "config/secret-config-example.js",
+    "src/_business"
   ],
   "exclude": ["node_modules"]
 }

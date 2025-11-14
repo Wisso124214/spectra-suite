@@ -34,10 +34,6 @@ export default class Config {
     return Config.instance;
   }
 
-  getConfig() {
-    return this;
-  }
-
   async getProfiles() {
     if (!this.PROFILES) {
       await this.mapProfiles();

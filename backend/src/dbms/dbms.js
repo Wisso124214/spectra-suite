@@ -2,7 +2,8 @@ import { pool } from '#config/secret-config.js';
 import Config from '#config/config.js';
 import Utils from '#utils/utils.js';
 import Formatter from '#formatter/formatter.js';
-import { parseMOP } from '#atx/parse-mop.js';
+import parseMOP from '#atx/parse-mop.js';
+import Debugger from '#debugger/debugger.js';
 
 export default class DBMS {
   constructor(validatorInstance = null) {
@@ -10,6 +11,7 @@ export default class DBMS {
     this.config = new Config();
     this.validator = validatorInstance;
     this.formatter = new Formatter();
+    this.dbgr = new Debugger();
     this.parseMOP = parseMOP;
 
     if (!DBMS.instance) {
@@ -131,7 +133,9 @@ export default class DBMS {
   }
 
   async executeNamedQuery({ nameQuery, params = [] }) {
-    console.log('Executing named query:', nameQuery, 'with params:', params);
+    this.dbgr.logColoredText('Executing named query: ', ['cyan', 'bold']);
+    console.log(nameQuery);
+    console.log(JSON.stringify(params, null, 2));
     if (!this.queries || !this.queries[nameQuery]) {
       this.utils.handleError({
         message: `Consulta nombrada '${nameQuery}' no encontrada`,
@@ -281,7 +285,20 @@ export default class DBMS {
       }
     }
 
-    return await this.query({ query: queryString, params });
+    try {
+      const res = await this.query({ query: queryString, params });
+      this.dbgr.logColoredText(
+        'Query result: ' + JSON.stringify(res.rows, null, 2),
+        ['yellow', 'bold']
+      );
+      return res;
+    } catch (error) {
+      return this.utils.handleError({
+        message: `Error ejecutando la consulta nombrada '${nameQuery}'`,
+        errorCode: this.ERROR_CODES.DB_ERROR,
+        error,
+      });
+    }
   }
 
   async executeJsonNamedQuery(jsonParams) {

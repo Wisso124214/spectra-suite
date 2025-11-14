@@ -2,9 +2,8 @@ import DBMS from '#dbms/dbms.js';
 import Utils from '#utils/utils.js';
 import Config from '#config/config.js';
 
-export const parseMOP = async ({ profile }) => {
+export default async function parseMOP({ profile }) {
   const dbms = new DBMS();
-  // await dbms.init();
   try {
     const result = await dbms.executeNamedQuery({
       nameQuery:
@@ -185,7 +184,7 @@ export const parseMOP = async ({ profile }) => {
     return menus;
   } catch (error) {
     const utils = new Utils();
-    const config = new Config().getConfig();
+    const config = new Config();
     const ERROR_CODES = config.ERROR_CODES;
 
     utils.handleError({
@@ -194,7 +193,4 @@ export const parseMOP = async ({ profile }) => {
       error,
     });
   }
-  //  finally {
-  //   await dbms.poolDisconnection();
-  // }
-};
+}

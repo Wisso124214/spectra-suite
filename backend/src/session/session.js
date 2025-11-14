@@ -6,6 +6,7 @@ import Config from '#config/config.js';
 import Tokenizer from '#tokenizer/tokenizer.js';
 import Mailer from '#mailer/mailer.js';
 import Utils from '#utils/utils.js';
+import Debugger from '#debugger/debugger.js';
 
 export default class Session {
   constructor() {
@@ -16,8 +17,9 @@ export default class Session {
       this.tokenizer = new Tokenizer();
       this.mailer = new Mailer();
       this.utils = new Utils();
+      this.dbgr = new Debugger();
 
-      this.config = new Config().getConfig();
+      this.config = new Config();
       this.SERVER_URL = this.config.SERVER_URL;
       this.ERROR_CODES = this.config.ERROR_CODES;
 
@@ -90,6 +92,11 @@ export default class Session {
 
   changeActiveProfile = async ({ userData }) => {
     try {
+      this.dbgr.logColoredText(
+        'Changing active profile with userData:' +
+          JSON.stringify(userData, null, 2),
+        ['green', 'bold']
+      );
       const { username, activeProfile } = userData;
       if (!username) {
         return {
@@ -108,6 +115,10 @@ export default class Session {
 
       const userProfiles = userProfilesResult.rows.map((up) => up.name);
 
+      this.dbgr.logColoredText(
+        'User profiles available:' + JSON.stringify(userProfiles, null, 2),
+        ['green', 'bold']
+      );
       // Si el perfil solicitado está entre los perfiles asignados
       if (activeProfile && userProfiles.includes(activeProfile)) {
         const { id, email } = userData;
@@ -119,6 +130,10 @@ export default class Session {
 
       // Si hay más de uno y no coincide el solicitado, devolvemos la lista para que el cliente elija
       if (userProfiles.length > 1) {
+        this.dbgr.logColoredText(
+          'User profiles available:' + JSON.stringify(userProfiles, null, 2),
+          ['green', 'bold']
+        );
         return {
           message: 'Seleccione el perfil con el que desea iniciar sesión',
           profiles: userProfiles,

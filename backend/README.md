@@ -398,6 +398,130 @@ Integración con opciones:
   - Validaciones de campos por entidad (`user`, `profile`, `subsystem`, `class`, `method`, `menu`, `option`, `transaction`).
   - `validateStructuredData(data, structure)` para validar esquemas anidados.
 
+  ## Pruebas automatizadas (tests)
+
+  Esta sección describe cómo funcionan las pruebas del proyecto y cómo ejecutarlas localmente o en un entorno CI. Incluye instrucciones para la suite de integración (Jest + Testcontainers / fallback a PG local), flags útiles y notas sobre el teardown para dejar la base de datos limpia.
+
+  ### Resumen
+  - Hay dos tipos principales de pruebas usadas en el repositorio:
+    - Tests de integración (Jest) que ejecutan los métodos del repositorio contra PostgreSQL. La suite de integración intenta levantar un contenedor PostgreSQL (Testcontainers). Si Docker/Testcontainers no está disponible, la suite caerá al uso de un servidor PostgreSQL local usando variables de entorno.
+    - Tests unitarios (pendientes): idealmente mockean `src/dbms/dbms.js` y prueban la lógica del repositorio sin tocar la BD.
+
+  ### Scripts disponibles
+
+  En `package.json` hay varios scripts relevantes para pruebas y seeds. Los más usados:
+  - `npm run test:integration` — ejecuta la suite de integración (Jest) que prueba los métodos del repositorio.
+  - `npm test` — alias general (depende de la configuración del proyecto).
+  - `npm run seed:db-structure` — siembra estructura mínima necesaria para algunas pruebas/manuales.
+
+  Comprueba `package.json` para ver scripts adicionales relacionados con `test:repository` o `test:security` si el repo los contiene.
+
+  ### Variables de entorno (fallback/local)
+
+  Si Testcontainers/Docker no está disponible la suite de integración usará la conexión PG local. Define las siguientes variables en PowerShell antes de ejecutar las pruebas:
+
+  ```powershell
+  $env:PGHOST='localhost'
+  $env:PGPORT='5432'
+  $env:PGUSER='postgres'
+  $env:PGPASSWORD='your_password_here'
+  $env:PGDATABASE='your_database'
+  ```
+
+  Reemplaza los valores por los de tu entorno. La suite también respeta variables estándar como `PGSSLMODE` si necesitas conexión segura.
+
+  Si prefieres usar Docker/Testcontainers (recomendado para CI): asegúrate de tener Docker Desktop ejecutándose. La suite detectará Testcontainers y levantará un contenedor Postgres temporal.
+
+  ### Flags y comportamiento de teardown
+  - `TEST_TEARDOWN=true` — cuando está habilitado, los tests de integración intentan limpiar (delete) las filas que crearon y cerrar recursos (pool y contenedor). El proyecto añade un bloque `afterAll` para intentar purgar los artefactos generados con patrones de nombre usados por los tests.
+  - `SKIP_PURGE=true` — omite la purga previa si el runner de tests implementa limpieza antes de ejecutar.
+
+  Nota: la limpieza intenta eliminar filas creadas por los tests usando patrones (nombres con prefijo/test timestamps). No es una garantía absoluta: para ambientes críticos usa contenedores efímeros por corrida de test.
+
+  ### Cómo ejecutar la suite de integración (PowerShell)
+  1. Opcional — iniciar Docker Desktop si quieres usar Testcontainers.
+  2. Desde PowerShell, establece variables PG si quieres usar una BD local (si no usas Docker):
+
+  ```powershell
+  $env:PGHOST='localhost'; $env:PGPORT='5432'; $env:PGUSER='postgres'; $env:PGPASSWORD='Wisso2004$'; $env:PGDATABASE='web2db'
+  ```
+
+  3. Ejecuta la suite de integración:
+
+  ```powershell
+  npm run test:integration
+  ```
+
+  La salida mostrará logs de las queries nombradas ejecutadas y el resumen de Jest. Al finalizar, si `TEST_TEARDOWN=true` la suite ejecutará la limpieza registrada en `afterAll`.
+
+  ### Ejecutar un solo test o archivo de tests (Jest)
+
+  Puedes ejecutar un solo archivo de test con Jest usando:
+
+  ```powershell
+  npx jest path\to\test\integration\repository.test.js -i
+  ```
+
+  O correr en modo watch (desarrollo):
+
+  ```powershell
+  npx jest --watch
+  ```
+
+  ### Notas sobre reproducibilidad y CI
+  - Para CI (GitHub Actions u otra), recomiendo usar Testcontainers para garantizar que cada ejecución tenga una BD limpia. Añade los pasos para ejecutar Docker o usa runners con Docker preinstalado.
+  - Un ejemplo de job en GitHub Actions:
+
+  ```yaml
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      services:
+        postgres:
+          image: postgres:14
+          ports: ['5432:5432']
+          env:
+            POSTGRES_DB: web2db
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+          options: >-
+            --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+      steps:
+        - uses: actions/checkout@v3
+        - name: Use Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '18'
+        - name: Install deps
+          run: npm ci
+        - name: Run integration tests
+          env:
+            PGHOST: localhost
+            PGPORT: 5432
+            PGUSER: postgres
+            PGPASSWORD: postgres
+            PGDATABASE: web2db
+          run: npm run test:integration
+  ```
+
+  ### Problemas comunes y soluciones
+  - Error NOT NULL (23502) en columnas como `password` o `id_subsystem`: la suite de integración crea seeds mínimos, pero si tu esquema local difiere, ejecuta `npm run seed:db-structure` o ajusta `test/integration/repository.test.js` para acomodar columnas extra.
+  - `TypeError: results.flat is not a function`: versión antigua de Node; el repo ya cambia `flat()` por code compatible, pero usa Node 18+ para evitar incompatibilidades.
+  - Docker/Testcontainers no disponible: usa variables PG (ver sección arriba) para ejecutar contra una BD local.
+
+  ### Buenas prácticas
+  - Preferir contenedores efímeros en CI para aislamiento completo.
+  - Mantener los named queries en `config/queries.yaml` actualizados — `executeNamedQuery` lanzará si falta un nombre.
+  - Añadir tests unitarios para lógica del repositorio que no necesite BD (rápidos y aislados).
+
+  ***
+
+  Si quieres, puedo también:
+  - Añadir un archivo de documentación independiente `TESTS.md` con ejemplos extendidos y salida esperada.
+  - Crear un workflow de GitHub Actions ejemplo en `.github/workflows/test.yml` y commitearlo.
+
+  Dime cuál prefieres y lo implemento.
+
   ## Ejemplo: llamar al endpoint `/toProcess` (cURL y fetch)
 
   El endpoint `/toProcess` es el punto general para ejecutar métodos del backend. El formato de petición esperado (según uso aquí para pruebas directas con queries nombradas) es un JSON con la forma:

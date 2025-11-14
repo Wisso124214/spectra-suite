@@ -1,7 +1,6 @@
 import Config from '#config/config.js';
 
-
-const {SERVER_URL} = new Config().getConfig()
+const { SERVER_URL } = new Config();
 
 fetch(`${SERVER_URL}/`, {
   method: 'POST',
@@ -9,8 +8,8 @@ fetch(`${SERVER_URL}/`, {
   body: JSON.stringify({
     tx: 2620,
     params: {
-      profile: 'participante'
-    }
+      profile: 'participante',
+    },
   }),
 })
   .then((response) => response.json())

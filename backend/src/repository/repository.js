@@ -1,9 +1,16 @@
 import Utils from '#utils/utils.js';
 import DBMS from '#dbms/dbms.js';
 
-export default class Repository extends DBMS {
+/**
+ * @deprecated Use the atx architecture instead.
+ * This Repository implementation is deprecated and will be removed in a future release.
+ * Please migrate callers to the replacement API as soon as possible.
+ */
+
+export default class Repository {
   constructor() {
-    super();
+    // No extend DBMS anymore; instantiate and delegate
+    this.dbms = new DBMS();
     this.utils = new Utils();
     // Backup temporal para subsistema/clase/metodo y perfiles de métodos
     this._subsystemsClassesMethodsBackup = null;
@@ -13,6 +20,56 @@ export default class Repository extends DBMS {
     }
 
     return Repository.instance;
+  }
+
+  // Delegate some DBMS methods so external callers (tests/other modules)
+  // can still call repo.query(), repo.executeNamedQuery(), etc.
+  async init() {
+    return await this.dbms.init();
+  }
+
+  query(arg1, arg2) {
+    return this.dbms.query(arg1, arg2);
+  }
+
+  executeNamedQuery(opts) {
+    return this.dbms.executeNamedQuery(opts);
+  }
+
+  executeJsonNamedQuery(opts) {
+    return this.dbms.executeJsonNamedQuery(opts);
+  }
+
+  executeJsonTransaction(json, message) {
+    return this.dbms.executeJsonTransaction(json, message);
+  }
+
+  beginTransaction() {
+    return this.dbms.beginTransaction();
+  }
+
+  commitTransaction(client) {
+    return this.dbms.commitTransaction(client);
+  }
+
+  rollbackTransaction(client) {
+    return this.dbms.rollbackTransaction(client);
+  }
+
+  endTransaction(client) {
+    return this.dbms.endTransaction(client);
+  }
+
+  poolDisconnection() {
+    return this.dbms.poolDisconnection();
+  }
+
+  connection() {
+    return this.dbms.connection();
+  }
+
+  disconnection(client) {
+    return this.dbms.disconnection(client);
   }
 
   // Transaction and helper utilities
@@ -50,7 +107,7 @@ export default class Repository extends DBMS {
     errorMessage = 'Error en transacción genérica'
   ) {
     // Wrapper to run a callback inside a DB transaction using DBMS.beginTransaction/commit/rollback
-    const client = await this.beginTransaction();
+    const client = await this.dbms.beginTransaction();
     if (!client) {
       return this.utils.handleError({
         message: 'No se pudo iniciar la transacción',
@@ -59,11 +116,11 @@ export default class Repository extends DBMS {
     }
     try {
       const result = await callback(client);
-      await this.commitTransaction(client);
+      await this.dbms.commitTransaction(client);
       return result;
     } catch (error) {
       try {
-        await this.rollbackTransaction(client);
+        await this.dbms.rollbackTransaction(client);
       } catch (e) {
         // ignore rollback errors but keep original error handling
       }
@@ -74,7 +131,7 @@ export default class Repository extends DBMS {
       });
     } finally {
       try {
-        await this.endTransaction(client);
+        await this.dbms.endTransaction(client);
       } catch (e) {}
     }
   }
@@ -332,8 +389,10 @@ export default class Repository extends DBMS {
       JOIN public."profile" p ON up.id_profile = p.id
     `;
     try {
-      const res = await this.query({ query: selectQuery }).then((res) => res);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getUsersProfiles',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getUsersProfiles`,
@@ -418,11 +477,11 @@ export default class Repository extends DBMS {
       JOIN public."profile" p ON up.id_profile = p.id
       WHERE u.username = $1;`;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getUserProfiles',
         params: [username],
-      }).then((r) => r);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: 'Error en getUserProfiles',
@@ -441,8 +500,10 @@ export default class Repository extends DBMS {
       JOIN public."option_profile" op ON o.id = op.id_option
       JOIN public."profile" p ON op.id_profile = p.id;`;
     try {
-      const res = await this.query({ query: selectQuery }).then((r) => r);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getMenusOptionsProfiles',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: 'Error en getMenusOptionsProfiles',
@@ -499,10 +560,10 @@ export default class Repository extends DBMS {
       AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);
     `;
     try {
-      await this.query({
-        query: queryString,
+      await this.dbms.executeNamedQuery({
+        nameQuery: 'delUserProfile',
         params: [username, profile],
-      }).then((res) => res);
+      });
     } catch (error) {
       return this.utils.handleError({
         message: `Error en delUserProfile`,
@@ -582,11 +643,11 @@ export default class Repository extends DBMS {
       WHERE p.name = $1;
     `;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getProfileOptions',
         params: [profile],
-      }).then((res) => res);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getProfileOptions`,
@@ -607,7 +668,7 @@ export default class Repository extends DBMS {
     }
     try {
       // Reutiliza la consulta nombrada ya existente para perfil→opciones
-      const res = await this.executeNamedQuery({
+      const res = await this.dbms.executeNamedQuery({
         nameQuery: 'getProfileOptions',
         params: [profile],
       });
@@ -631,8 +692,10 @@ export default class Repository extends DBMS {
       JOIN public."option" o ON op.id_option = o.id
     `;
     try {
-      const res = await this.query({ query: selectQuery }).then((res) => res);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getProfilesOptions',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getProfilesOptions`,
@@ -657,9 +720,10 @@ export default class Repository extends DBMS {
       AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);
     `;
     try {
-      await this.query({ query: queryString, params: [option, profile] }).then(
-        (res) => res
-      );
+      await this.dbms.executeNamedQuery({
+        nameQuery: 'delProfileOption',
+        params: [option, profile],
+      });
     } catch (error) {
       return this.utils.handleError({
         message: `Error en delProfileOption`,
@@ -732,7 +796,12 @@ export default class Repository extends DBMS {
       },
       errorMessage: 'Error en setMenusOptions',
     });
-    return { data: results.flat() };
+    // Avoid using Array.flat for compatibility with older Node versions
+    const flat =
+      results && Array.isArray(results)
+        ? results.reduce((acc, cur) => acc.concat(cur || []), [])
+        : [];
+    return { data: flat };
   }
 
   async getMenuOptions(data) {
@@ -750,10 +819,11 @@ export default class Repository extends DBMS {
       WHERE m.name = $1;
     `;
     try {
-      const res = await this.query({ query: selectQuery, params: [menu] }).then(
-        (res) => res
-      );
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getMenuOptions',
+        params: [menu],
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getMenuOptions`,
@@ -771,8 +841,10 @@ export default class Repository extends DBMS {
       JOIN public."option" o ON om.id_option = o.id
     `;
     try {
-      const res = await this.query({ query: selectQuery }).then((res) => res);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getMenusOptions',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getMenusOptions`,
@@ -797,9 +869,10 @@ export default class Repository extends DBMS {
       AND id_menu = (SELECT id FROM public."menu" WHERE name = $2);
     `;
     try {
-      await this.query({ query: queryString, params: [option, menu] }).then(
-        (res) => res
-      );
+      await this.dbms.executeNamedQuery({
+        nameQuery: 'delMenuOption',
+        params: [option, menu],
+      });
     } catch (error) {
       return this.utils.handleError({
         message: `Error en delMenuOption`,
@@ -1198,11 +1271,11 @@ export default class Repository extends DBMS {
       WHERE m.name = $1 AND p.name = $2;
     `;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getMenuOptionsProfile',
         params: [menu, profile],
-      }).then((res) => res);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getMenuOptionsProfile`,
@@ -1229,11 +1302,11 @@ export default class Repository extends DBMS {
       WHERE p.name = $1;
     `;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getMenusOptionsProfile',
         params: [profile],
-      }).then((res) => res);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getMenusOptionsProfile`,
@@ -1385,11 +1458,11 @@ export default class Repository extends DBMS {
       WHERE p.name = $1;
     `;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getProfileMethods',
         params: [profile],
-      }).then((res) => res);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getProfileMethods`,
@@ -1407,8 +1480,10 @@ export default class Repository extends DBMS {
       JOIN public."method" m ON mp.id_method = m.id
     `;
     try {
-      const res = await this.query({ query: selectQuery }).then((res) => res);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getProfilesMethods',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getProfilesMethods`,
@@ -1433,9 +1508,10 @@ export default class Repository extends DBMS {
       AND id_profile = (SELECT id FROM public."profile" WHERE name = $2);
     `;
     try {
-      await this.query({ query: queryString, params: [method, profile] }).then(
-        (res) => res
-      );
+      await this.dbms.executeNamedQuery({
+        nameQuery: 'delProfileMethod',
+        params: [method, profile],
+      });
     } catch (error) {
       return this.utils.handleError({
         message: `Error en delProfileMethod`,
@@ -1510,11 +1586,11 @@ export default class Repository extends DBMS {
       WHERE c.name = $1;
     `;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getClassMethods',
         params: [className],
-      }).then((res) => res);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getClassMethods`,
@@ -1532,8 +1608,10 @@ export default class Repository extends DBMS {
       JOIN public."method" m ON cm.id_method = m.id
     `;
     try {
-      const res = await this.query({ query: selectQuery }).then((res) => res);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getClassesMethods',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getClassesMethods`,
@@ -1558,10 +1636,10 @@ export default class Repository extends DBMS {
       AND id_method = (SELECT id FROM public."method" WHERE name = $2);
     `;
     try {
-      await this.query({
-        query: queryString,
+      await this.dbms.executeNamedQuery({
+        nameQuery: 'delClassMethod',
         params: [className, method],
-      }).then((res) => res);
+      });
     } catch (error) {
       return this.utils.handleError({
         message: `Error en delClassMethod`,
@@ -1883,11 +1961,11 @@ export default class Repository extends DBMS {
       WHERE s.name = $1;
     `;
     try {
-      const res = await this.query({
-        query: selectQuery,
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getSubsystemClassesMethods',
         params: [subsystem],
-      }).then((res) => res);
-      return res.rows;
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getSubsystemClassesMethods`,
@@ -1909,8 +1987,10 @@ export default class Repository extends DBMS {
       JOIN public."method" m ON cm.id_method = m.id;
     `;
     try {
-      const res = await this.query({ query: selectQuery }).then((res) => res);
-      return res.rows;
+      const res = await this.dbms.executeNamedQuery({
+        nameQuery: 'getSubsystemsClassesMethods',
+      });
+      return res?.rows || [];
     } catch (error) {
       return this.utils.handleError({
         message: `Error en getSubsystemsClassesMethods`,
@@ -2202,9 +2282,8 @@ export default class Repository extends DBMS {
       });
     }
     try {
-      const res = await this.query({ query: queryString, params }).then(
-        (r) => r
-      );
+      const nameQuery = tx ? 'delTxTransactionById' : 'delTxTransactionByNames';
+      const res = await this.dbms.executeNamedQuery({ nameQuery, params });
       if (res.rowCount === 0)
         return this.utils.handleError({
           message: 'Transacción no encontrada para eliminar',

@@ -1,0 +1,43 @@
+import Utils from '#utils/utils.js';
+import Config from '#config/config.js';
+import Business from '#business/business.js';
+
+export default async function getMethod({ className, method }) {
+  const utils = new Utils();
+  const config = new Config();
+  const business = new Business();
+  const ERROR_CODES = config.ERROR_CODES;
+  let folderPaths = business.getFolderPaths();
+  let mappedFiles = business.getMappedFilenames();
+
+  if (folderPaths.length === 0 || Object.keys(mappedFiles).length === 0) {
+    business.init();
+    folderPaths = business.getFolderPaths();
+    mappedFiles = business.getMappedFilenames();
+  }
+
+  let path = null;
+
+  if (folderPaths.includes(className)) {
+    const fileName = mappedFiles[className]?.[method];
+    if (!fileName) {
+      utils.handleError({
+        message: `Método '${method}' no encontrado en clase '${className}'`,
+        errorCode: ERROR_CODES.NOT_FOUND,
+      });
+    }
+    path = `#${className}/${fileName}`;
+  } else {
+    path = `#${className}/${className}.js`;
+  }
+
+  const c = await import(path);
+  let i = new c.default();
+  if (i && typeof i[method] !== 'function') {
+    utils.handleError({
+      message: `Método '${method}' no encontrado en clase '${className}'`,
+      errorCode: ERROR_CODES.NOT_FOUND,
+    });
+  }
+  return i[method];
+}

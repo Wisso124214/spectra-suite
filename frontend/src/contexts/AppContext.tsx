@@ -61,9 +61,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           params: JSON.parse(fetchData?.params || '{}'),
         }),
         credentials: 'include',
-      });
+      }).then((res) => res);
       const data = await response.json();
-      setUserData(data.userData);
+      setUserData(data?.userData || null);
+      console.log('fetchToProcess response:', data);
       return response;
     } catch (error) {
       console.error('Error fetching toProcess:', error);
