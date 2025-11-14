@@ -4,8 +4,9 @@ import CustomSidebar from '../components/CustomSidebar/CustomSidebar';
 import { Layout } from '@/components/ui/layout';
 import { SERVER_URL } from '../../config';
 import { type MenuData } from '../components/CustomSidebar/CustomSidebar';
-// import CreateUser from '../components/CreateUSer/CreateUser';
-import DeleteUser from '@/components/DeleteUser/DeleteUser';
+import CreateUser from '../components/CreateUser/CreateUser';
+// import DeleteUser from '@/components/DeleteUser/DeleteUser';
+// import UpdateUser from '@/components/UpdateUser/UpdateUser';
 import useAppContext from '@/hooks/useAppContext';
 
 export default function Home() {
@@ -75,8 +76,9 @@ export default function Home() {
         {error && <p className="mt-4 text-red-600">Error: {error}</p>}
 
         <p className="mt-4">Contenido principal aqui...</p>
-        {/* <CreateUser Title={'Crear Usuario'} /> */}
-        <DeleteUser Title={'Eliminar Usuario'} />
+        <CreateUser Title={'Crear Usuario'} />
+        {/* <DeleteUser Title={'Eliminar Usuario'} /> */}
+        {/* <UpdateUser Title={'Actualizar Usuario'} /> */}
 
         <section className="mt-6">
           <h2 className="text-lg font-semibold">Respuesta cruda del backend</h2>
