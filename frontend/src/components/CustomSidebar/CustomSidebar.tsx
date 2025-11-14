@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
-import { Logs, GitBranch, Menu } from 'lucide-react';
+import { Logs, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
 import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
@@ -42,7 +42,7 @@ type MenuItem = {
 const iconMap: Record<string, React.ElementType> = {
   Home: Menu,
   List: Logs,
-  GitBranch,
+  GitBranch: Menu,
 };
 
 function renderMenuItem(
@@ -72,9 +72,11 @@ function renderMenuItem(
           <CollapsibleContent className='data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down flex flex-col gap-2 overflow-hidden transition-all duration-300'>
             <div className='border-l pl-2 w-full ml-2'>
               <SidebarMenu className='rounded-lg'>
-                {item.children.map((child, ci) =>
-                  renderMenuItem(child, `${key}-${ci}`, deep + 1)
-                )}
+                <div className='flex flex-col'>
+                  {item.children.map((child, ci) =>
+                    renderMenuItem(child, `${key}-${ci}`, deep + 1)
+                  )}
+                </div>
               </SidebarMenu>
             </div>
           </CollapsibleContent>
@@ -89,7 +91,7 @@ function renderMenuItem(
           <DropdownMenuTrigger asChild className='focus:bg-transparent w-full'>
             <SidebarMenuButton asChild className='focus:bg-transparent w-full'>
               <div className='w-full flex justify-between items-center border-t-2 mt-1 pr-2 rounded-lg'>
-                <div className='flex items-center  w-full'>
+                <div className='flex items-center w-full'>
                   {item.icon &&
                     React.createElement(iconMap[item.icon] ?? Menu, {
                       className: 'w-4 h-4 mr-2',
@@ -159,9 +161,6 @@ export default function CustomSidebar({
   setSubsystemSelected: (v: string) => void;
   defaultSubsystem?: string;
 }) {
-  useEffect(() => {
-    console.log('New data:', data);
-  }, [data]);
   return (
     <Sidebar className='min-w-72'>
       <SidebarHeader>
@@ -184,7 +183,7 @@ export default function CustomSidebar({
             </SidebarGroupContent>
           </SidebarGroup>
         ) : (
-          <div className='flex flex-col'>
+          <div className='flex flex-col gap-2'>
             {data.map((it, i) => renderMenuItem(it, `root-${i}`))}
           </div>
         )}
