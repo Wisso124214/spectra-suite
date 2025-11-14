@@ -4,7 +4,7 @@ import { SERVER_URL } from '../../../config';
 
 export default function Header() {
   const navigate = useNavigate();
-  const { setUserData, userData, fetchToProcess } = useAppContext();
+  const { setUserData, userData } = useAppContext();
 
   const handleLogoClick = async () => {
     if (userData) {
@@ -29,7 +29,6 @@ export default function Header() {
             : {}),
           ...(userData?.username ? { username: userData.username } : {}),
         };
-        console.log('Header userData:', newUserData);
         setUserData(newUserData);
         if (newUserData) {
           navigate('/home');

@@ -175,26 +175,27 @@ export default function CreateUser({
         'Error en el registro. Por favor, intente más tarde.',
         toastStyles
       );
+      console.error('Error en el registro:', err);
     }
   };
 
   return (
     <div
-      className="w-full max-w-md p-4 border rounded-md bg-background z-10 
-    max-h-[80vh] overflow-y-auto pr-4"
+      className='w-full max-w-md p-4 border rounded-md bg-background z-10 
+    max-h-[80vh] overflow-y-auto pr-4'
     >
       <form onSubmit={handleRegister} noValidate>
         <FieldSet>
           <FieldDescription>{title}</FieldDescription>
 
-          <FieldGroup className="grid grid-cols-2 gap-4">
-            <Field className="col-span-1">
-              <FieldLabel htmlFor="username">Username</FieldLabel>
+          <FieldGroup className='grid grid-cols-2 gap-4'>
+            <Field className='col-span-1'>
+              <FieldLabel htmlFor='username'>Username</FieldLabel>
               <Input
-                id="username"
-                type="text"
-                placeholder="Max Leiter"
-                className="w-full"
+                id='username'
+                type='text'
+                placeholder='Max Leiter'
+                className='w-full'
                 value={username}
                 aria-invalid={!!errorUsername}
                 onBlur={async (e) => await runValidateUsername(e.target.value)}
@@ -206,19 +207,19 @@ export default function CreateUser({
                 }}
               />
               {errorUsername ? (
-                <p className="mt-1 text-sm text-red-500" role="alert">
+                <p className='mt-1 text-sm text-red-500' role='alert'>
                   {errorUsername}
                 </p>
               ) : null}
             </Field>
 
-            <Field className="col-span-1">
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Field className='col-span-1'>
+              <FieldLabel htmlFor='password'>Password</FieldLabel>
               <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="w-full"
+                id='password'
+                type='password'
+                placeholder='••••••••'
+                className='w-full'
                 value={password}
                 aria-invalid={!!errorPassword}
                 onChange={(e) => {
@@ -229,21 +230,21 @@ export default function CreateUser({
                 onBlur={() => runValidatePassword(password)}
               />
               {errorPassword ? (
-                <p className="mt-1 text-sm text-red-500" role="alert">
+                <p className='mt-1 text-sm text-red-500' role='alert'>
                   {errorPassword}
                 </p>
               ) : null}
             </Field>
 
-            <Field className="col-span-1">
-              <FieldLabel htmlFor="confirm-password">
+            <Field className='col-span-1'>
+              <FieldLabel htmlFor='confirm-password'>
                 Confirm password
               </FieldLabel>
               <Input
-                id="confirm-password"
-                type="password"
-                placeholder="••••••••"
-                className="w-full"
+                id='confirm-password'
+                type='password'
+                placeholder='••••••••'
+                className='w-full'
                 value={confirmPassword}
                 aria-invalid={!!errorConfirmPassword}
                 onChange={(e) => {
@@ -254,20 +255,20 @@ export default function CreateUser({
                 onBlur={() => runValidateConfirmPassword(confirmPassword)}
               />
               {errorConfirmPassword ? (
-                <p className="mt-1 text-sm text-red-500" role="alert">
+                <p className='mt-1 text-sm text-red-500' role='alert'>
                   {errorConfirmPassword}
                 </p>
               ) : null}
             </Field>
 
             {/* Email (ocupa 2 columnas) */}
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Field className='col-span-2'>
+              <FieldLabel htmlFor='email'>Email</FieldLabel>
               <Input
-                id="email"
-                type="email"
-                placeholder="email@dominio.com"
-                className="w-full"
+                id='email'
+                type='email'
+                placeholder='email@dominio.com'
+                className='w-full'
                 value={email}
                 aria-invalid={!!errorEmail}
                 onChange={async (e) => {
@@ -280,17 +281,17 @@ export default function CreateUser({
                 }}
               />
               {errorEmail ? (
-                <p className="mt-1 text-sm text-red-500" role="alert">
+                <p className='mt-1 text-sm text-red-500' role='alert'>
                   {errorEmail}
                 </p>
               ) : null}
             </Field>
           </FieldGroup>
 
-          <FieldGroup className="grid grid-cols-2 gap-4 mt-4 items-start">
+          <FieldGroup className='grid grid-cols-2 gap-4 mt-4 items-start'>
             {/* Select control (controlado) */}
             <div>
-              <FieldLabel className="mb-2 block">Selecciona perfil</FieldLabel>
+              <FieldLabel className='mb-2 block'>Selecciona perfil</FieldLabel>
               <Select
                 onValueChange={(v) => {
                   setSelectedPerfil(v);
@@ -298,8 +299,8 @@ export default function CreateUser({
                 }}
                 value={selectedPerfil ?? undefined}
               >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selecciona perfil" />
+                <SelectTrigger className='w-[180px]'>
+                  <SelectValue placeholder='Selecciona perfil' />
                 </SelectTrigger>
 
                 <SelectContent>
@@ -314,20 +315,20 @@ export default function CreateUser({
                 </SelectContent>
               </Select>
               {errorPerfil ? (
-                <p className="mt-1 text-sm text-red-500" role="alert">
+                <p className='mt-1 text-sm text-red-500' role='alert'>
                   {errorPerfil}
                 </p>
               ) : null}
             </div>
 
             <Field
-              orientation="responsive"
-              className="col-span-2 mt-2 flex gap-2 grid grid-cols-2"
+              orientation='responsive'
+              className='col-span-2 mt-2 flex gap-2 grid grid-cols-2'
             >
-              <Button type="submit" className="w-[60px]">
+              <Button type='submit' className='w-[60px]'>
                 Crear
               </Button>
-              <Button type="button" variant="outline" onClick={handleClear}>
+              <Button type='button' variant='outline' onClick={handleClear}>
                 limpiar
               </Button>
             </Field>

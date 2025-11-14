@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState } from 'react';
 import { SERVER_URL } from '../../config';
 import toast from 'react-hot-toast';
 import { toastStyles } from '../../config';
@@ -18,6 +18,8 @@ export type AppContextType = {
   setUserData: (u: User) => void;
   fetchToProcess?: (fetchData: FetchData) => Promise<Response>;
   handleLogout?: () => Promise<void>;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (v: boolean) => void;
 };
 
 type FetchData = {
@@ -33,6 +35,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [userData, setUserData] = useState<User>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const fetchToProcess: (fetchData: FetchData) => Promise<Response> = async (
     fetchData: FetchData | undefined
@@ -101,6 +104,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserData,
         fetchToProcess,
         handleLogout,
+        isSidebarOpen,
+        setIsSidebarOpen,
       }}
     >
       {children}

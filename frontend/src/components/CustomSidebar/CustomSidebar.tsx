@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
-import { Home as HomeIcon, List, GitBranch } from 'lucide-react';
+import { Logs, GitBranch, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
 import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
@@ -39,14 +39,12 @@ type MenuItem = {
   defaultOpen?: boolean;
 };
 
-// mapa simple de icon keys -> componentes lucide
 const iconMap: Record<string, React.ElementType> = {
-  Home: HomeIcon,
-  List,
+  Home: Menu,
+  List: Logs,
   GitBranch,
 };
 
-// render recursivo: soporta niveles arbitrarios
 function renderMenuItem(
   item: MenuItem,
   key: string,
@@ -62,7 +60,7 @@ function renderMenuItem(
           >
             <CollapsibleTrigger className='border-t-2'>
               {item.icon &&
-                React.createElement(iconMap[item.icon] ?? HomeIcon, {
+                React.createElement(iconMap[item.icon] ?? Menu, {
                   className: 'w-4 h-4 mr-2',
                 })}
               <span className='w-full text-left text-wrap wrap-anywhere line-clamp-1 '>
@@ -93,7 +91,7 @@ function renderMenuItem(
               <div className='w-full flex justify-between items-center border-t-2 mt-1 pr-2 rounded-lg'>
                 <div className='flex items-center  w-full'>
                   {item.icon &&
-                    React.createElement(iconMap[item.icon] ?? HomeIcon, {
+                    React.createElement(iconMap[item.icon] ?? Menu, {
                       className: 'w-4 h-4 mr-2',
                     })}
                   <span className=' w-full text-wrap wrap-anywhere line-clamp-1 font-semibold'>
@@ -134,10 +132,9 @@ function renderMenuItem(
       }}
     >
       <SidebarMenuButton asChild>
-        {/* usamos Link para navegación SPA */}
         <Link to={item.url ?? '#'} className='flex items-center gap-2'>
           {item.icon &&
-            React.createElement(iconMap[item.icon] ?? HomeIcon, {
+            React.createElement(iconMap[item.icon] ?? Menu, {
               className: 'w-4 h-4',
             })}
           <span className='w-full text-wrap wrap-anywhere line-clamp-1 '>
@@ -149,101 +146,50 @@ function renderMenuItem(
   );
 }
 
-export default function CustomSidebar({ data }: { data: MenuData }) {
-  const subsystems = ['next.js', 'sveltekit', 'nuxt.js', 'remix', 'astro'];
-  const items = [
-    {
-      title: 'Dashboard',
-      url: '/dashboard',
-      icon: 'Home',
-    },
-    {
-      title: 'Projects',
-      icon: 'Home',
-      children: [
-        {
-          title: 'Project A',
-          url: '/projects/a',
-          icon: 'Home',
-          children: [
-            {
-              title: 'Subproject A1',
-              children: [
-                {
-                  icon: 'Home',
-                  title:
-                    'Task A1.1 alskd jalskdj alskdj alksjd laksjdlasj dlasdloaj slkdals djaskljd',
-                  url: '/projects/a/subproject-a1/task-a1-1',
-                  children: [
-                    {
-                      title: 'Subtask A1.1.1',
-                      url: '/projects/a/subproject-a1/task-a1-1/subtask-a1-1-1',
-                      children: [
-                        {
-                          title: 'Subtask A1.1.1.1',
-                          url: '/projects/a/subproject-a1/task-a1-1/subtask-a1-1-1/subtask-a1-1-1-1',
-                        },
-
-                        {
-                          title: 'Subtask A1.1.1.2',
-                          url: '/projects/a/subproject-a1/task-a1-1/subtask-a1-1-1/subtask-a1-1-1-2',
-                        },
-                        {
-                          title: 'Subtask A1.1.1.3',
-                          url: '/projects/a/subproject-a1/task-a1-1/subtask-a1-1-1/subtask-a1-1-1-3',
-                        },
-                      ],
-                    },
-                    {
-                      title: 'Subtask A1.1.2',
-                      url: '/projects/a/subproject-a1/task-a1-1/subtask-a1-1-2',
-                    },
-
-                    {
-                      title: 'Subtask A1.1.3',
-                      url: '/projects/a/subproject-a1/task-a1-1/subtask-a1-1-2',
-                    },
-                  ],
-                },
-                {
-                  title: 'Task A1.2',
-                  url: '/projects/a/subproject-a1/task-a1-2',
-                },
-              ],
-            },
-            {
-              title: 'Subproject A2',
-            },
-          ],
-        },
-        {
-          title: 'Project B',
-          url: '/projects/b',
-        },
-      ],
-    },
-  ];
+export default function CustomSidebar({
+  data,
+  subsystems = [],
+  subsystemSelected,
+  setSubsystemSelected,
+  defaultSubsystem,
+}: {
+  data: MenuData;
+  subsystems?: string[];
+  subsystemSelected: string;
+  setSubsystemSelected: (v: string) => void;
+  defaultSubsystem?: string;
+}) {
+  useEffect(() => {
+    console.log('New data:', data);
+  }, [data]);
   return (
     <Sidebar className='min-w-72'>
       <SidebarHeader>
-        <SubsystemSelect subsystems={subsystems} />
+        <SubsystemSelect
+          subsystems={subsystems}
+          subsystemSelected={subsystemSelected}
+          setSubsystemSelected={setSubsystemSelected}
+          defaultOption={defaultSubsystem}
+        />
       </SidebarHeader>
 
-      <SidebarContent className='mt-3'>
-        {items.length === 0 ? (
+      <SidebarContent className='mt-5'>
+        {data.length === 0 ? (
           <SidebarGroup>
-            <SidebarGroupLabel>Sin opciones</SidebarGroupLabel>
+            <SidebarGroupLabel>
+              Sin opciones. Por favor seleccione un subsistema...
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu />
             </SidebarGroupContent>
           </SidebarGroup>
         ) : (
-          // Object.values(data).map((it) => renderMenuItem(it))
-          items.map((it, i) => renderMenuItem(it, `root-${i}`))
+          <div className='flex flex-col'>
+            {data.map((it, i) => renderMenuItem(it, `root-${i}`))}
+          </div>
         )}
       </SidebarContent>
       <SidebarFooter className='flex justify-center items-center'>
-        {/* <MenuAvatar /> */}
         <CommandAvatar />
       </SidebarFooter>
     </Sidebar>
