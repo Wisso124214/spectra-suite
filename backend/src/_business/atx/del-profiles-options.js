@@ -1,10 +1,6 @@
 import getMethod from '#atx/get-method.js';
 
 export default async function delProfilesOptions(data) {
-  const _requireConfirmJoin = await getMethod({
-    className: 'helpers',
-    method: '_requireConfirmJoin',
-  });
   const delProfileOption = await getMethod({
     className: 'atx',
     method: 'delProfileOption',

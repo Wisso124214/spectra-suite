@@ -19,7 +19,7 @@ export default async function delUserProfile(data) {
       message: 'Datos inválidos o incompletos',
       errorCode: ERROR_CODES.BAD_REQUEST,
     });
-  const conf = _requireConfirmJoin(data.confirmDelete, 'user_profile');
+  const conf = await _requireConfirmJoin(data.confirmDelete, 'user_profile');
   if (conf !== true) return conf;
 
   try {

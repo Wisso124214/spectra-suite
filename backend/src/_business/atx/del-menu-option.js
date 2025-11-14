@@ -3,7 +3,7 @@ import Config from '#config/config.js';
 import DBMS from '#dbms/dbms.js';
 import getMethod from '#atx/get-method.js';
 
-export default async function delProfileMethod(data) {
+export default async function delMenuOption(data) {
   const utils = new Utils();
   const config = new Config();
   const dbms = new DBMS();
@@ -13,23 +13,23 @@ export default async function delProfileMethod(data) {
     method: '_requireConfirmJoin',
   });
 
-  const { method, profile } = data;
-  if (!method || !profile)
+  const { option, menu } = data;
+  if (!option || !menu)
     return utils.handleError({
       message: 'Datos inválidos o incompletos',
       errorCode: ERROR_CODES.BAD_REQUEST,
     });
-  const conf = _requireConfirmJoin(data.confirmDelete, 'method_profile');
+  const conf = await _requireConfirmJoin(data.confirmDelete, 'option_menu');
   if (conf !== true) return conf;
 
   try {
     await dbms.executeNamedQuery({
-      nameQuery: 'delProfileMethod',
-      params: [method, profile],
+      nameQuery: 'delMenuOption',
+      params: [option, menu],
     });
   } catch (error) {
     return utils.handleError({
-      message: `Error en delProfileMethod`,
+      message: `Error en delMenuOption`,
       errorCode: ERROR_CODES.DB_ERROR,
       error,
     });

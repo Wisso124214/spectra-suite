@@ -3,33 +3,33 @@ import Config from '#config/config.js';
 import DBMS from '#dbms/dbms.js';
 import getMethod from '#atx/get-method.js';
 
-export default async function delProfileOption(data) {
+export default async function delClassMethod(data) {
   const utils = new Utils();
   const config = new Config();
   const dbms = new DBMS();
   const ERROR_CODES = config.ERROR_CODES;
   const _requireConfirmJoin = await getMethod({
-    className: 'helpers',
+    className: 'atx',
     method: '_requireConfirmJoin',
   });
 
-  const { option, profile } = data;
-  if (!option || !profile)
+  const { className, method } = data;
+  if (!className || !method)
     return utils.handleError({
       message: 'Datos inválidos o incompletos',
       errorCode: ERROR_CODES.BAD_REQUEST,
     });
-  const conf = _requireConfirmJoin(data.confirmDelete, 'option_profile');
+  const conf = await _requireConfirmJoin(data.confirmDelete, 'class_method');
   if (conf !== true) return conf;
 
   try {
     await dbms.executeNamedQuery({
-      nameQuery: 'delProfileOption',
-      params: [option, profile],
+      nameQuery: 'delClassMethod',
+      params: [className, method],
     });
   } catch (error) {
     return utils.handleError({
-      message: `Error en delProfileOption`,
+      message: `Error en delClassMethod`,
       errorCode: ERROR_CODES.DB_ERROR,
       error,
     });

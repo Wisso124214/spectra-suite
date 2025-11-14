@@ -22,9 +22,10 @@
     "#utils/*": "./src/utils/*",
     "#dispatcher/*": "./src/dispatcher/*",
     "#formatter/*": "./src/formatter/*",
-    "#business/*": "./src/business/*",
+    "#business/*": "./src/_business/*",
     "#atx/*": "./src/business/atx/*",
     "#bo/*": "./src/business/bo/*",
+    "#backer-scm/*": "./src/business/backer-scm/*",
     "#ftx/*": "./src/business/ftx/*"
   },
   "scripts": {
