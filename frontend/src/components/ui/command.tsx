@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { cva, type VariantProps } from 'class-variance-authority';
 
 function Command({
   className,

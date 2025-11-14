@@ -29,15 +29,15 @@ export default class Dispatcher {
         const { getSession } = new SessionManager();
 
         // Obtener sesión
-        const currentSession = getSession(req);
-        if (!currentSession) {
+        const userData = getSession(req);
+        if (!userData) {
           return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
             errorCode: this.ERROR_CODES.UNAUTHORIZED,
             message: 'Usuario no autenticado',
           });
         }
         this.dbgr.logColoredText(
-          'Current session:' + JSON.stringify(currentSession, null, 2),
+          'Current session:' + JSON.stringify(userData, null, 2),
           ['cyan', 'bold']
         );
 
@@ -61,6 +61,7 @@ export default class Dispatcher {
           return res.status(this.ERROR_CODES.NOT_FOUND).send({
             errorCode: this.ERROR_CODES.NOT_FOUND,
             message: 'Error. El código de transacción no es válido.',
+            userData,
           });
         }
 
@@ -70,11 +71,12 @@ export default class Dispatcher {
           return res.status(this.ERROR_CODES.BAD_REQUEST).send({
             errorCode: this.ERROR_CODES.BAD_REQUEST,
             message: 'Se requieren className y method en la petición',
+            userData,
           });
         }
 
         // Determinar profile desde la sesión activa
-        const profileFromSession = currentSession.activeProfile;
+        const profileFromSession = userData.activeProfile;
 
         const checkData = {
           subsystem: subsystem || null,
@@ -90,6 +92,7 @@ export default class Dispatcher {
             errorCode: this.ERROR_CODES.BAD_REQUEST,
             message:
               'Su sesión ha sido finalizada. Por favor inicie sesión nuevamente.',
+            userData,
           });
         }
         const perm = await this.security.checkPermissionMethod(checkData);
@@ -99,6 +102,7 @@ export default class Dispatcher {
             errorCode: this.ERROR_CODES.FORBIDDEN,
             message: 'No tiene permisos para ejecutar este método',
             permission: perm.hasPermission,
+            userData,
           });
         }
 
@@ -121,7 +125,7 @@ export default class Dispatcher {
         return res.send({
           ok: true,
           result: execResult,
-          userData: currentSession,
+          userData,
         });
       } catch (error) {
         // Manejo genérico de errores
@@ -139,21 +143,14 @@ export default class Dispatcher {
       }
     });
 
-    this.app.post('/', async (req, res) => {
-      await fetch(this.config.SERVER_URL + '/toProcess', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req.body),
-      })
-        .then((response) => response.json())
-        .then((data) => res.send(data))
-        .catch((error) => {
-          console.error('Error en /:', error);
-          res
-            .status(this.ERROR_CODES.INTERNAL_SERVER_ERROR)
-            .send({ error: 'Error procesando la petición' });
-        });
+    // catch-all POST route: match any path and redirect with 307 to preserve
+    // the original HTTP method and request body when forwarding to /toProcess
+    // Use a RegExp /.*/ to avoid path-to-regexp parsing issues with '*'
+    this.app.post(/.*/, (req, res) => {
+      // 307 Temporary Redirect preserves method (POST) and body
+      return res.redirect(307, '/toProcess');
     });
+
     this.app.get('/', async (req, res) => {
       res.send('API running');
     });

@@ -27,6 +27,10 @@ export default function Login() {
   const { setUserData, userData } = useAppContext();
 
   useEffect(() => {
+    setProfileSelected(userData?.profile || '');
+  }, [userData]);
+
+  useEffect(() => {
     if (profileSelected) {
       handleProfileSelected(`Bienvenido ${profileSelected}, ${username}.`);
     }
@@ -99,14 +103,16 @@ export default function Login() {
             setProfiles(response.profiles);
             setIsPopupOpen(true);
           } else {
+            const data = await response.json();
+            const userData = data?.userData || null;
             const newUserData = {
-              ...(response.userData?.activeProfile
-                ? { profile: response.userData.activeProfile }
+              ...(userData?.activeProfile
+                ? { profile: userData.activeProfile }
                 : {}),
-              ...(username ? { username } : {}),
+              ...(userData?.username ? { username: userData.username } : {}),
             };
             setUserData(newUserData);
-            setProfileSelected(response.userData?.activeProfile || '');
+            setProfileSelected(response.userData?.activeProfile || null);
             setTimeout(() => {
               navigate('/home');
             }, 1000);

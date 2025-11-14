@@ -34,12 +34,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [userData, setUserData] = useState<User>(null);
 
-  useEffect(() => {
-    console.log('UserData updated in AppContext:', userData);
-  }, [userData]);
-
   const fetchToProcess: (fetchData: FetchData) => Promise<Response> = async (
-    fetchData: FetchData
+    fetchData: FetchData | undefined
   ) => {
     let response: Response;
     console.log(
@@ -57,14 +53,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tx: fetchData?.tx,
+          tx: fetchData?.tx || -1,
           params: JSON.parse(fetchData?.params || '{}'),
         }),
         credentials: 'include',
       }).then((res) => res);
       const data = await response.json();
-      setUserData(data?.userData || null);
-      console.log('fetchToProcess response:', data);
+      const userData = data?.userData || null;
+      const newUserData = {
+        ...(userData?.activeProfile ? { profile: userData.activeProfile } : {}),
+        ...(userData?.username ? { username: userData.username } : {}),
+      };
+      setUserData(newUserData);
       return response;
     } catch (error) {
       console.error('Error fetching toProcess:', error);

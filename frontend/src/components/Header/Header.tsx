@@ -1,15 +1,55 @@
 import { useNavigate } from 'react-router-dom';
+import useAppContext from '@/hooks/useAppContext';
+import { SERVER_URL } from '../../../config';
 
 export default function Header() {
   const navigate = useNavigate();
+  const { setUserData, userData, fetchToProcess } = useAppContext();
+
+  const handleLogoClick = async () => {
+    if (userData) {
+      navigate('/home');
+    } else {
+      let response: Response;
+      try {
+        response = await fetch(`${SERVER_URL}/toProcess`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tx: -1,
+            params: {},
+          }),
+          credentials: 'include',
+        }).then((res) => res);
+        const data = await response.json();
+        const userData = data?.userData || null;
+        const newUserData = {
+          ...(userData?.activeProfile
+            ? { profile: userData.activeProfile }
+            : {}),
+          ...(userData?.username ? { username: userData.username } : {}),
+        };
+        console.log('Header userData:', newUserData);
+        setUserData(newUserData);
+        if (newUserData) {
+          navigate('/home');
+        } else {
+          navigate('/login');
+        }
+      } catch (error) {
+        setUserData(null);
+        navigate('/login');
+        console.error('Error fetching toProcess:', error);
+        throw error;
+      }
+    }
+  };
 
   return (
     <header className='w-full py-4 px-6 bg-(--foreground-absolute) fixed z-10 top-0 left-0 flex items-center justify-end '>
       <div
         className='flex items-center cursor-pointer'
-        onClick={() => {
-          navigate('/');
-        }}
+        onClick={handleLogoClick}
       >
         <h1 className='text-2xl font-bold text-foreground'>Event Suite</h1>
         <img
