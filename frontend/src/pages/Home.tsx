@@ -102,8 +102,85 @@ export default function Home() {
       const transformed = transformToMenuData(
         securityForSubsystem ?? ({} as BackendSubsystem)
       );
-      if (JSON.stringify(menuData) !== JSON.stringify(transformed))
-        setMenuData(transformed);
+
+      const testSubmenu = [
+        {
+          title: 'Usuarios',
+          icon: 'User',
+          children: [
+            {
+              title: 'Crear Usuario',
+              url: '/tx/3001',
+              icon: 'UserPlus',
+              children: [
+                {
+                  title: 'Crear Usuario Admin',
+                  url: '/tx/4001',
+                  icon: 'ShieldCheck',
+                },
+                {
+                  title: 'Crear Usuario Normal',
+                  url: '/tx/4002',
+                  icon: 'UserCircle',
+                },
+                {
+                  title: 'Crear Usuario Invitado',
+                  url: '/tx/4003',
+                  icon: 'UserPlus',
+                  children: [
+                    {
+                      title: 'Crear Invitado Temporal',
+                      url: '/tx/5001',
+                      icon: 'Clock',
+                    },
+                    {
+                      title: 'Crear Invitado Permanente',
+                      url: '/tx/5002',
+                      icon: 'Infinity',
+                    },
+                    {
+                      title: 'Crear Invitado Restringido',
+                      url: '/tx/5003',
+                      icon: 'Lock',
+                      children: [
+                        {
+                          title: 'Crear Invitado Restringido por Tiempo',
+                          url: '/tx/6001',
+                          icon: 'Timer',
+                        },
+                        {
+                          title: 'Crear Invitado Restringido por Funciones',
+                          url: '/tx/6002',
+                          icon: 'Function',
+                        },
+                        {
+                          title: 'Crear Invitado Restringido por Ubicación',
+                          url: '/tx/6003',
+                          icon: 'MapPin',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              title: 'Eliminar Usuario',
+              url: '/tx/3002',
+              icon: 'UserMinus',
+            },
+            {
+              title: 'Actualizar Usuario',
+              url: '/tx/3003',
+              icon: 'UserCheck',
+            },
+          ],
+        },
+      ];
+
+      const newMenuData = [...transformed, ...testSubmenu];
+      if (JSON.stringify(menuData) !== JSON.stringify(newMenuData))
+        setMenuData(newMenuData);
     }
   }, [rawData, subsystems, subsystemSelected, menuData]);
 
