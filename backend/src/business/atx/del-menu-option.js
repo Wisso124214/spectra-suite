@@ -1,0 +1,37 @@
+import Utils from '#utils/utils.js';
+import Config from '#config/config.js';
+import DBMS from '#dbms/dbms.js';
+import getMethod from '#atx/get-method.js';
+
+export default async function delMenuOption(data) {
+  const utils = new Utils();
+  const config = new Config();
+  const dbms = new DBMS();
+  const ERROR_CODES = config.ERROR_CODES;
+  const _requireConfirmJoin = await getMethod({
+    className: 'helpers',
+    method: '_requireConfirmJoin',
+  });
+
+  const { option, menu } = data;
+  if (!option || !menu)
+    return utils.handleError({
+      message: 'Datos inválidos o incompletos',
+      errorCode: ERROR_CODES.BAD_REQUEST,
+    });
+  const conf = _requireConfirmJoin(data.confirmDelete, 'option_menu');
+  if (conf !== true) return conf;
+
+  try {
+    await dbms.executeNamedQuery({
+      nameQuery: 'delMenuOption',
+      params: [option, menu],
+    });
+  } catch (error) {
+    return utils.handleError({
+      message: `Error en delMenuOption`,
+      errorCode: ERROR_CODES.DB_ERROR,
+      error,
+    });
+  }
+}
