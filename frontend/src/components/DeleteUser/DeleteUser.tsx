@@ -18,6 +18,8 @@ import { useState } from 'react';
 import React from 'react';
 import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+import { SERVER_URL } from '../../../config';
 
 type UserItem = { id: number; username: string; profile: string };
 
@@ -35,6 +37,28 @@ export default function DeleteUser({ Title }: { Title: string }) {
   const [open, setOpen] = React.useState(false);
 
   const openDialog = () => setOpen(true);
+
+  //   useEffect(() => {
+  //     try {
+  //       fetch(SERVER_URL + '/toProcess', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({
+  //           tx: 2577,
+  //           params: {
+  //             User,
+  //           },
+  //         }),
+  //         credentials: 'include',
+  //       })
+  //         .then((res) => res.json())
+  //         .then((json) => {
+  //           setData(json.result || []);
+  //         });
+  //     } catch (error) {
+  //       console.error('Error fetching user data:', error);
+  //     }
+  //   },[]);
 
   const handleClear = () => {
     setSelectedIds([]);

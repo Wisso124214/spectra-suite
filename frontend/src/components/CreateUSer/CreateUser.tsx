@@ -180,7 +180,7 @@ export default function CreateUser({
 
   return (
     <div
-      className="w-full max-w-md p-4 border rounded-md bg-background z-10 
+      className="w-[70vw] max-w-md p-4 border rounded-md bg-background z-10 
     max-h-[80vh] overflow-y-auto pr-4"
     >
       <form onSubmit={handleRegister} noValidate>
