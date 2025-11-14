@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardAction,
@@ -6,30 +6,30 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import toast from "react-hot-toast";
-import { toastStyles } from "../../config";
-import { SERVER_URL } from "../../config";
-import { useEffect, useState } from "react";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import toast from 'react-hot-toast';
+import { toastStyles } from '../../config';
+import { SERVER_URL } from '../../config';
+import { useState } from 'react';
 import {
   validateUsername,
   validateEmail,
   validatePassword,
   validateConfirmPassword,
-} from "@/utils/validator/validator.tsx";
-import { useNavigate } from "react-router-dom";
+} from '@/utils/validator/validator.tsx';
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [email, setEmail] = useState("");
-  const [errorUsername, setErrorUsername] = useState("");
-  const [errorEmail, setErrorEmail] = useState("");
-  const [errorPassword, setErrorPassword] = useState("");
-  const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [errorUsername, setErrorUsername] = useState('');
+  const [errorEmail, setErrorEmail] = useState('');
+  const [errorPassword, setErrorPassword] = useState('');
+  const [errorConfirmPassword, setErrorConfirmPassword] = useState('');
 
   const navigate = useNavigate();
 
@@ -37,15 +37,15 @@ export default function Register() {
     e.preventDefault();
     if (errorUsername || errorEmail || errorPassword || errorConfirmPassword) {
       toast.error(
-        "Por favor, corrija los errores antes de continuar.",
+        'Por favor, corrija los errores antes de continuar.',
         toastStyles
       );
       return;
     }
-    fetch(SERVER_URL + "/register", {
-      method: "POST",
+    fetch(SERVER_URL + '/register', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         username,
@@ -53,32 +53,32 @@ export default function Register() {
         email,
         confirmPassword,
       }),
-      credentials: "include",
+      credentials: 'include',
     })
       .then((res) => res.json())
       .then((response) => {
         if (!response.errorCode) {
           toast.success(
-            response.message || "Inicio de sesión exitoso.",
+            response.message || 'Inicio de sesión exitoso.',
             toastStyles
           );
           localStorage.setItem(
-            "userData",
+            'userData',
             JSON.stringify({ isLoggedIn: true })
           );
           setTimeout(() => {
-            navigate("/login");
+            navigate('/login');
           }, 2000);
         } else {
           toast.error(
-            response.message || "Usuario o contraseña incorrectos.",
+            response.message || 'Usuario o contraseña incorrectos.',
             toastStyles
           );
         }
       })
       .catch(() => {
         toast.error(
-          "Error en el inicio de sesión. Por favor, intente más tarde.",
+          'Error en el inicio de sesión. Por favor, intente más tarde.',
           toastStyles
         );
       });
@@ -93,7 +93,7 @@ export default function Register() {
             Ingrese sus datos para crear una cuenta
           </CardDescription>
           <CardAction>
-            <Button onClick={() => navigate("/login")} variant="link">
+            <Button onClick={() => navigate('/login')} variant="link">
               Login
             </Button>
           </CardAction>
@@ -103,8 +103,8 @@ export default function Register() {
             <div
               className="flex flex-col gap-6 max-h-[50vh] overflow-y-auto pr-4"
               style={{
-                scrollbarWidth: "thin",
-                scrollbarColor: "var(--primary-color) transparent",
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'var(--primary-color) transparent',
               }}
             >
               <div className="grid gap-2">
@@ -122,7 +122,7 @@ export default function Register() {
                   placeholder="usuario123"
                   required
                 />
-                {errorUsername !== "" && (
+                {errorUsername !== '' && (
                   <span className="text-destructive text-sm font-semibold">
                     {errorUsername}
                   </span>
@@ -143,7 +143,7 @@ export default function Register() {
                   placeholder="usuario@ejemplo.com"
                   required
                 />
-                {errorEmail !== "" && (
+                {errorEmail !== '' && (
                   <span className="text-destructive text-sm font-semibold">
                     {errorEmail}
                   </span>
@@ -164,7 +164,7 @@ export default function Register() {
                   placeholder="•••••••••••"
                   required
                 />
-                {errorPassword !== "" && (
+                {errorPassword !== '' && (
                   <span className="text-destructive text-sm font-semibold">
                     {errorPassword}
                   </span>
@@ -185,7 +185,7 @@ export default function Register() {
                   placeholder="•••••••••••"
                   required
                 />
-                {errorConfirmPassword !== "" && (
+                {errorConfirmPassword !== '' && (
                   <span className="text-destructive text-sm font-semibold">
                     {errorConfirmPassword}
                   </span>

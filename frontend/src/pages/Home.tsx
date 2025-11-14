@@ -4,6 +4,8 @@ import CustomSidebar from '../components/CustomSidebar/CustomSidebar';
 import { Layout } from '@/components/ui/layout';
 import { SERVER_URL } from '../../config';
 import { type MenuData } from '../components/CustomSidebar/CustomSidebar';
+// import CreateUser from '../components/CreateUSer/CreateUser';
+import DeleteUser from '@/components/DeleteUser/DeleteUser';
 
 export default function Home() {
   // MenuData ya está definido como MenuItem[] en CustomSidebar
@@ -68,23 +70,25 @@ export default function Home() {
 
   return (
     <>
-      <div className='flex-1 p-6 overflow-auto'>
-        <h1 className='text-2xl font-bold'>
+      <div className="flex-1 p-6 overflow-auto">
+        <h1 className="text-2xl font-bold">
           Bienvenido{username ? `, ${username}` : ''}
         </h1>
 
-        {loading && <p className='mt-4'>Cargando menú...</p>}
-        {error && <p className='mt-4 text-red-600'>Error: {error}</p>}
+        {loading && <p className="mt-4">Cargando menú...</p>}
+        {error && <p className="mt-4 text-red-600">Error: {error}</p>}
 
-        <p className='mt-4'>Contenido principal aqui...</p>
+        <p className="mt-4">Contenido principal aqui...</p>
+        {/* <CreateUser Title={'Crear Usuario'} /> */}
+        <DeleteUser Title={'Eliminar Usuario'} />
 
-        <section className='mt-6'>
-          <h2 className='text-lg font-semibold'>Respuesta cruda del backend</h2>
-          <p className='text-sm text-muted-foreground'>
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold">Respuesta cruda del backend</h2>
+          <p className="text-sm text-muted-foreground">
             (Se muestra JSON.stringify de lo que devuelve el fetch)
           </p>
-          <div className='mt-2'>
-            <pre className='max-h-96 overflow-auto border rounded p-3 bg-black/5'>
+          <div className="mt-2">
+            <pre className="max-h-96 overflow-auto border rounded p-3 bg-black/5">
               {rawResponse
                 ? JSON.stringify(rawResponse, null, 2)
                 : 'No hay respuesta aún'}
@@ -92,7 +96,7 @@ export default function Home() {
           </div>
         </section>
       </div>
-      <div className='absolute z-12 bg-red-500 w-0'>
+      <div className="absolute z-12 bg-red-500 w-0">
         <Layout defaultOpen={true}>
           <CustomSidebar data={menuData} />
         </Layout>
