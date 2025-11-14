@@ -1,6 +1,12 @@
 import Utils from '#utils/utils.js';
 import DBMS from '#dbms/dbms.js';
 
+/**
+ * @deprecated Use the atx architecture instead.
+ * This Repository implementation is deprecated and will be removed in a future release.
+ * Please migrate callers to the replacement API as soon as possible.
+ */
+
 export default class Repository {
   constructor() {
     // No extend DBMS anymore; instantiate and delegate

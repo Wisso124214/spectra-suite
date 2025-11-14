@@ -2,7 +2,6 @@ import Session from '#session/session.js';
 import SessionManager from '#session/sessionManager.js';
 import Security from '#security/security.js';
 import Config from '#config/config.js';
-import Repository from '#repository/repository.js';
 import Debugger from '#debugger/debugger.js';
 
 export default class Dispatcher {
@@ -12,7 +11,6 @@ export default class Dispatcher {
     this.security = new Security();
     this.config = new Config();
     this.ERROR_CODES = this.config.ERROR_CODES;
-    this.repository = new Repository();
     this.dbgr = new Debugger();
 
     if (!Dispatcher.instance) {

@@ -5,7 +5,6 @@ import DBMS from '#dbms/dbms.js';
 import Session from '#src/session/session.js';
 import Security from '#src/security/security.js';
 import Validator from '#validator/validator.js';
-import Repository from '#repository/repository.js';
 import Dispatcher from '#src/dispatcher/dispatcher.js';
 import Business from '#business/business.js';
 
@@ -16,7 +15,6 @@ const validator = new Validator(dbms);
 dbms.validator = validator;
 const session = new Session();
 const security = new Security();
-const repository = new Repository();
 const dispatcher = new Dispatcher(app);
 const business = new Business();
 
