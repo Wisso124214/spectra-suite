@@ -36,10 +36,6 @@ export default class Dispatcher {
             message: 'Usuario no autenticado',
           });
         }
-        this.dbgr.logColoredText(
-          'Current session:' + JSON.stringify(userData, null, 2),
-          ['cyan', 'bold']
-        );
 
         // Payload esperado: puede venir en body o en header.data (compatibilidad)
         const payload = req.body || JSON.parse(req.headers.data || '{}');
@@ -100,6 +96,7 @@ export default class Dispatcher {
         if (perm && !perm.hasPermission) {
           return res.status(this.ERROR_CODES.FORBIDDEN).send({
             errorCode: this.ERROR_CODES.FORBIDDEN,
+            tx: tx,
             message: 'No tiene permisos para ejecutar este método',
             permission: perm.hasPermission,
             userData,
@@ -118,15 +115,12 @@ export default class Dispatcher {
           params: objectParams,
         });
 
-        this.dbgr.logColoredText(
-          'Execution result:' + JSON.stringify(execResult, null, 2),
-          ['green', 'bold']
-        );
+        const newUserData = getSession(req); // refrescar datos de sesión por si hubo cambios
 
         return res.send({
           ok: true,
           result: execResult,
-          userData,
+          userData: newUserData,
         });
       } catch (error) {
         // Manejo genérico de errores

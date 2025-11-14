@@ -12,8 +12,8 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import { useAppContext } from './hooks/useAppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-
 import Popup from './components/Popup/Popup.tsx';
+
 import { useEffect } from 'react';
 
 function AppContent() {
@@ -51,13 +51,14 @@ function AppContent() {
 }
 
 function App() {
-  const isShowingPopup = false;
+  const { isShowingPopup, childrenPopup } = useAppContext();
+
   return (
     <>
-      <Toaster position='top-center' />
-      <Popup title='' isShowingPopup={isShowingPopup}>
-        <h1 className='text-lg font-bold text-foreground'>Holaaa</h1>
+      <Popup isShowingPopup={isShowingPopup}>
+        <>{childrenPopup}</>
       </Popup>
+      <Toaster position='top-center' />
       <AppContent />
     </>
   );

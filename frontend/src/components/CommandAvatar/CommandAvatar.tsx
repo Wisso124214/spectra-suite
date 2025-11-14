@@ -19,8 +19,7 @@ import { useAppContext } from '../../hooks/useAppContext';
 import ChangeProfile from '../ChangeProfile/ChangeProfile';
 
 export function CommandAvatar() {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const { handleLogout, userData } = useAppContext();
+  const { handleLogout, userData, setIsShowingPopup } = useAppContext();
 
   type MenuItem = {
     icon?: React.ElementType;
@@ -42,7 +41,7 @@ export function CommandAvatar() {
         {
           icon: RotateCcwKey,
           label: 'Cambiar perfil',
-          onClick: () => setIsPopupOpen(true),
+          onClick: () => setIsShowingPopup(true),
         },
         {
           icon: LogOut,
@@ -196,10 +195,7 @@ export function CommandAvatar() {
           </Command>
         </CollapsibleContent>
       </Collapsible>
-      <ChangeProfile
-        isPopupOpen={isPopupOpen}
-        setIsPopupOpen={setIsPopupOpen}
-      />
+      <ChangeProfile />
     </>
   );
 }

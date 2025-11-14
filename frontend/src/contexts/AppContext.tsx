@@ -20,11 +20,22 @@ export type AppContextType = {
   handleLogout?: () => Promise<void>;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (v: boolean) => void;
+  isShowingPopup: boolean;
+  setIsShowingPopup: (v: boolean) => void;
+  childrenPopup: React.ReactNode;
+  setChildrenPopup: (v: React.ReactNode) => void;
 };
 
 type FetchData = {
   tx: number;
   params: string;
+};
+
+export type BasicResponseToProcess = {
+  ok: boolean;
+  errorCode?: number;
+  message?: string;
+  result: any;
 };
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -36,21 +47,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [userData, setUserData] = useState<User>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isShowingPopup, setIsShowingPopup] = useState(false);
+  const [childrenPopup, setChildrenPopup] = useState<React.ReactNode>(null);
 
   const fetchToProcess: (fetchData: FetchData) => Promise<Response> = async (
     fetchData: FetchData | undefined
   ) => {
     let response: Response;
-    console.log(
-      JSON.stringify(
-        {
-          tx: fetchData?.tx,
-          params: JSON.parse(fetchData?.params || '{}'),
-        },
-        null,
-        2
-      )
-    );
     try {
       response = await fetch(`${SERVER_URL}/toProcess`, {
         method: 'POST',
@@ -62,13 +65,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         credentials: 'include',
       }).then((res) => res);
       const data = await response.json();
-      const userData = data?.userData || null;
-      const newUserData = {
-        ...(userData?.activeProfile ? { profile: userData.activeProfile } : {}),
-        ...(userData?.username ? { username: userData.username } : {}),
-      };
-      setUserData(newUserData);
-      return response;
+
+      const newUserData = data?.userData || null;
+      newUserData.profile = newUserData?.activeProfile || null;
+      setUserData((prevUserData) => ({ ...prevUserData, ...newUserData }));
+      return data;
     } catch (error) {
       console.error('Error fetching toProcess:', error);
       throw error;
@@ -76,7 +77,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   async function handleLogout() {
-    console.log('Logging out user...');
     await fetch(`${SERVER_URL}/logout`, {
       method: 'GET',
       credentials: 'include',
@@ -106,6 +106,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         handleLogout,
         isSidebarOpen,
         setIsSidebarOpen,
+        isShowingPopup,
+        setIsShowingPopup,
+        childrenPopup,
+        setChildrenPopup,
       }}
     >
       {children}
