@@ -70,9 +70,9 @@ function renderMenuItem(
             </CollapsibleTrigger>
           </SidebarGroupLabel>
           <CollapsibleContent className='data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down flex flex-col gap-2 overflow-hidden transition-all duration-300'>
-            <div className='border-l pl-2 w-full ml-2'>
+            <div className='border-l pl-2 w-full ml-2 '>
               <SidebarMenu className='rounded-lg'>
-                <div className='flex flex-col'>
+                <div className='flex flex-col '>
                   {item.children.map((child, ci) =>
                     renderMenuItem(child, `${key}-${ci}`, deep + 1)
                   )}
@@ -172,7 +172,7 @@ export default function CustomSidebar({
         />
       </SidebarHeader>
 
-      <SidebarContent className='mt-5'>
+      <SidebarContent className='mt-5 z-5'>
         {data.length === 0 ? (
           <SidebarGroup>
             <SidebarGroupLabel>
@@ -183,7 +183,14 @@ export default function CustomSidebar({
             </SidebarGroupContent>
           </SidebarGroup>
         ) : (
-          <div className='flex flex-col gap-2'>
+          <div
+            className='flex flex-col gap-2 max-h-114 overflow-y-auto'
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor:
+                'color-mix(in oklch, var(--sidebar-accent-foreground) 20%, transparent) transparent',
+            }}
+          >
             {data.map((it, i) => renderMenuItem(it, `root-${i}`))}
           </div>
         )}

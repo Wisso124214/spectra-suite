@@ -112,6 +112,7 @@ export default class Dispatcher {
         else objectParams = params || {};
         // Ejecutar el método solicitado
         const execResult = await this.security.executeMethod({
+          subsystem,
           className,
           method,
           params: objectParams,
