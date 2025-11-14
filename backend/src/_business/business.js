@@ -4,7 +4,7 @@ import path from 'path';
 export default class Business {
   constructor() {
     if (!Business.instance) {
-      this.rootPath = './src/business';
+      this.rootPath = './src/_business';
       this.mapFiles = {};
       this.folderPaths = [];
       Business.instance = this;

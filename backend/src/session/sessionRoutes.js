@@ -26,6 +26,7 @@ export const createRoutes = async (app) => {
   });
 
   app.post('/login', async (req, res) => {
+    console.log('Received /login request');
     if (existSession(req)) {
       return res.send({
         errorCode: ERROR_CODES.BAD_REQUEST,
