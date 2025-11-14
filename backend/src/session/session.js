@@ -214,7 +214,7 @@ export default class Session {
     }
 
     // Usar executeJsonTransaction para que todas las operaciones de registro
-    // (insertUser, getUserWhere, setUserProfile) se ejecuten en una sola transacción
+    // (insertUser, getUsersWhere, setUserProfile) se ejecuten en una sola transacción
     if (!this.dbms.queries) {
       await this.dbms.init();
     }
@@ -228,7 +228,7 @@ export default class Session {
           userData.status,
           userData.register_date,
         ],
-        getUserWhere: [userData.username],
+        getUsersWhere: [userData.username],
         setUserProfile: [userData.username, userData.activeProfile],
       };
 
@@ -237,7 +237,7 @@ export default class Session {
         'Error ejecutando la transacción de registro'
       );
 
-      // results es un array con los resultados en el mismo orden: [insertUserRes, getUserWhereRes, setUserProfileRes]
+      // results es un array con los resultados en el mismo orden: [insertUserRes, getUsersWhereRes, setUserProfileRes]
       const fetchRes = results && results[1];
       const postedUser = fetchRes?.rows?.[0];
       if (!postedUser) {

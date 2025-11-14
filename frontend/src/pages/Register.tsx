@@ -69,7 +69,7 @@ export default function Register() {
             JSON.stringify({ isLoggedIn: true })
           );
           setTimeout(() => {
-            navigate('/login');
+            navigate('/home');
           }, 2000);
         } else {
           toast.error(
@@ -87,33 +87,33 @@ export default function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen w-full">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-left">
+    <div className='flex items-center justify-center h-screen w-full'>
+      <Card className='w-full max-w-sm'>
+        <CardHeader className='text-left'>
           <CardTitle>Registrarse</CardTitle>
           <CardDescription>
             Ingrese sus datos para crear una cuenta
           </CardDescription>
           <CardAction>
-            <Button onClick={() => navigate('/login')} variant="link">
+            <Button onClick={() => navigate('/login')} variant='link'>
               Login
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleRegister} className="w-full">
+          <form onSubmit={handleRegister} className='w-full'>
             <div
-              className="flex flex-col gap-6 max-h-[50vh] overflow-y-auto pr-4"
+              className='flex flex-col gap-6 max-h-[50vh] overflow-y-auto pr-4'
               style={{
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'var(--primary-color) transparent',
               }}
             >
-              <div className="grid gap-2">
-                <Label htmlFor="username">Nombre de usuario</Label>
+              <div className='grid gap-2'>
+                <Label htmlFor='username'>Nombre de usuario</Label>
                 <Input
-                  id="username"
-                  type="text"
+                  id='username'
+                  type='text'
                   value={username}
                   onChange={async (e) => {
                     const value = e.target.value;
@@ -121,20 +121,20 @@ export default function Register() {
                     const error = await validateUsername(value);
                     setErrorUsername(error);
                   }}
-                  placeholder="usuario123"
+                  placeholder='usuario123'
                   required
                 />
                 {errorUsername !== '' && (
-                  <span className="text-destructive text-sm font-semibold">
+                  <span className='text-destructive text-sm font-semibold'>
                     {errorUsername}
                   </span>
                 )}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Correo electrónico</Label>
+              <div className='grid gap-2'>
+                <Label htmlFor='email'>Correo electrónico</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id='email'
+                  type='email'
                   value={email}
                   onChange={async (e) => {
                     const value = e.target.value;
@@ -142,20 +142,20 @@ export default function Register() {
                     const error = await validateEmail(value);
                     setErrorEmail(error);
                   }}
-                  placeholder="usuario@ejemplo.com"
+                  placeholder='usuario@ejemplo.com'
                   required
                 />
                 {errorEmail !== '' && (
-                  <span className="text-destructive text-sm font-semibold">
+                  <span className='text-destructive text-sm font-semibold'>
                     {errorEmail}
                   </span>
                 )}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Contraseña</Label>
+              <div className='grid gap-2'>
+                <Label htmlFor='password'>Contraseña</Label>
                 <Input
-                  id="password"
-                  type="password"
+                  id='password'
+                  type='password'
                   value={password}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -163,20 +163,20 @@ export default function Register() {
                     const error = validatePassword(value);
                     setErrorPassword(error);
                   }}
-                  placeholder="•••••••••••"
+                  placeholder='•••••••••••'
                   required
                 />
                 {errorPassword !== '' && (
-                  <span className="text-destructive text-sm font-semibold">
+                  <span className='text-destructive text-sm font-semibold'>
                     {errorPassword}
                   </span>
                 )}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="confirm-password">Confirmar contraseña</Label>
+              <div className='grid gap-2'>
+                <Label htmlFor='confirm-password'>Confirmar contraseña</Label>
                 <Input
-                  id="confirm-password"
-                  type="password"
+                  id='confirm-password'
+                  type='password'
                   value={confirmPassword}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -184,18 +184,18 @@ export default function Register() {
                     const error = validateConfirmPassword(password, value);
                     setErrorConfirmPassword(error);
                   }}
-                  placeholder="•••••••••••"
+                  placeholder='•••••••••••'
                   required
                 />
                 {errorConfirmPassword !== '' && (
-                  <span className="text-destructive text-sm font-semibold">
+                  <span className='text-destructive text-sm font-semibold'>
                     {errorConfirmPassword}
                   </span>
                 )}
               </div>
             </div>
-            <div className="mt-6 flex flex-col gap-2">
-              <Button type="submit" className="w-full">
+            <div className='mt-6 flex flex-col gap-2'>
+              <Button type='submit' className='w-full'>
                 Registrarse
               </Button>
             </div>

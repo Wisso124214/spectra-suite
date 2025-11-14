@@ -39,5 +39,5 @@ export default async function getMethod({ className, method }) {
       errorCode: ERROR_CODES.NOT_FOUND,
     });
   }
-  return i[method];
+  return i;
 }

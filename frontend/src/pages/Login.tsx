@@ -24,7 +24,7 @@ export default function Login() {
   const [profiles, setProfiles] = useState([]);
   const [profileSelected, setProfileSelected] = useState('');
   const navigate = useNavigate();
-  const { setUserData } = useAppContext();
+  const { setUserData, userData } = useAppContext();
 
   useEffect(() => {
     if (profileSelected) {
@@ -36,44 +36,46 @@ export default function Login() {
     setIsPopupOpen(false);
     toast.success(message || 'Inicio de sesión exitoso.', toastStyles);
 
-    await fetch(SERVER_URL + '/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        activeProfile: profileSelected,
-      }),
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then(async (response) => {
-        if (!response.errorCode) {
-          const newUserData = {
-            ...(profileSelected ? { profile: profileSelected } : {}),
-            ...(username ? { username } : {}),
-          };
+    if (!userData?.profile) {
+      await fetch(SERVER_URL + '/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          activeProfile: profileSelected,
+        }),
+        credentials: 'include',
+      })
+        .then((res) => res.json())
+        .then(async (response) => {
+          if (!response.errorCode) {
+            const newUserData = {
+              ...(profileSelected ? { profile: profileSelected } : {}),
+              ...(username ? { username } : {}),
+            };
 
-          setUserData(newUserData);
-          setTimeout(() => {
-            navigate('/home');
-          }, 1000);
-        } else {
+            setUserData(newUserData);
+            setTimeout(() => {
+              navigate('/home');
+            }, 1000);
+          } else {
+            toast.error(
+              response.message ||
+                'Error del servidor. Intente de nuevo más tarde.',
+              toastStyles
+            );
+          }
+        })
+        .catch(async () => {
           toast.error(
-            response.message ||
-              'Error del servidor. Intente de nuevo más tarde.',
+            'Error al obtener datos del usuario. Por favor, intente más tarde.',
             toastStyles
           );
-        }
-      })
-      .catch(async () => {
-        toast.error(
-          'Error al obtener datos del usuario. Por favor, intente más tarde.',
-          toastStyles
-        );
-      });
+        });
+    }
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -97,7 +99,17 @@ export default function Login() {
             setProfiles(response.profiles);
             setIsPopupOpen(true);
           } else {
-            handleProfileSelected(response.message);
+            const newUserData = {
+              ...(response.userData?.activeProfile
+                ? { profile: response.userData.activeProfile }
+                : {}),
+              ...(username ? { username } : {}),
+            };
+            setUserData(newUserData);
+            setProfileSelected(response.userData?.activeProfile || '');
+            setTimeout(() => {
+              navigate('/home');
+            }, 1000);
           }
         } else {
           toast.error(
