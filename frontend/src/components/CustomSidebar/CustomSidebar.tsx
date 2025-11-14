@@ -27,6 +27,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { Logs, Menu } from 'lucide-react';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
 import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
+import { CustomTooltip } from '../CustomTooltip/CustomTooltip';
 
 export type MenuData = MenuItem[];
 
@@ -54,18 +55,25 @@ function renderMenuItem(
       <Collapsible key={key} className='group/collapsible'>
         <SidebarGroup>
           <SidebarGroupLabel
-            className='text-(--text-color) text-sm hover:bg-accent'
             asChild
+            className='text-(--text-color) text-sm hover:bg-accent'
           >
             <CollapsibleTrigger className='border-t-2'>
-              {item.icon &&
-                React.createElement(iconMap[item.icon] ?? Menu, {
-                  className: 'w-4 h-4 mr-2',
-                })}
-              <span className='w-full text-left text-wrap wrap-anywhere line-clamp-1 '>
-                {item.title}
-              </span>
-              <ChevronDown className='ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90' />
+              <CustomTooltip
+                text={item.title}
+                className='text-(--text-color) bg-(--gray-background-light-2) border-3 border-(--gray-background-light-3) text-sm hover:bg-accent font-semibold rounded-lg'
+              >
+                <div className='w-full flex items-center'>
+                  {item.icon &&
+                    React.createElement(iconMap[item.icon] ?? Menu, {
+                      className: 'w-4 h-4 mr-2',
+                    })}
+                  <span className='w-full text-left text-wrap wrap-anywhere line-clamp-1 '>
+                    {item.title}
+                  </span>
+                  <ChevronDown className='ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90' />
+                </div>
+              </CustomTooltip>
             </CollapsibleTrigger>
           </SidebarGroupLabel>
           <CollapsibleContent className='data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down flex flex-col gap-2 overflow-hidden transition-all duration-300'>

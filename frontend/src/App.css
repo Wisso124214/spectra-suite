@@ -30,6 +30,16 @@ body {
     var(--gray-color) 93%,
     var(--background-absolute)
   );
+  --gray-background-light-2: color-mix(
+    in oklch,
+    var(--gray-color) 90%,
+    var(--background-absolute)
+  );
+  --gray-background-light-3: color-mix(
+    in oklch,
+    var(--gray-color) 86%,
+    var(--background-absolute)
+  );
   --gray-background: var(--gray-color);
 
   --gray-muted: color-mix(
