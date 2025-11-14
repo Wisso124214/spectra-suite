@@ -105,11 +105,6 @@ export default function Home() {
       if (JSON.stringify(menuData) !== JSON.stringify(transformed))
         setMenuData(transformed);
     }
-
-    // transform rawData to menuData when subsystemSelected changes
-    if (rawData && menuData.length === 0) {
-      // set menuData
-    }
   }, [rawData, subsystems, subsystemSelected, menuData]);
 
   useEffect(() => {
@@ -144,7 +139,7 @@ export default function Home() {
     if (userData?.profile) fetchMenus();
     else navigate('/login');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userData]);
 
   return (
     <>

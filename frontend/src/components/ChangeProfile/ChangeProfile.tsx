@@ -7,19 +7,34 @@ import {
 } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
-import { toastStyles } from '../../../config';
+import { toastStyles, SERVER_URL } from '../../../config';
 import useAppContext from '@/hooks/useAppContext';
+import {
+  type BasicResponseToProcess,
+  type User,
+} from '../../contexts/AppContext';
 
-export default function ChangeProfile({
-  isPopupOpen = false,
-  setIsPopupOpen,
-}: {
-  isPopupOpen: boolean;
-  setIsPopupOpen: (isOpen: boolean) => void;
-}) {
-  const [profilesState, setProfilesState] = useState<string[]>([]);
-  const { setUserData, fetchToProcess, userData } = useAppContext();
-  const [selectedProfile, setSelectedProfile] = useState('');
+type ChangeProfileResponse = BasicResponseToProcess & {
+  userData?: User;
+  result: {
+    message?: string;
+    rows?: { profile_name: string }[];
+  };
+};
+
+export default function ChangeProfile() {
+  const {
+    setUserData,
+    fetchToProcess,
+    userData,
+    setIsShowingPopup,
+    isShowingPopup,
+    setChildrenPopup,
+  } = useAppContext();
+
+  const [selectedProfile, setSelectedProfile] = useState(
+    userData?.profile || ''
+  );
   const [activeProfile, setActiveProfile] = useState(userData?.profile || '');
 
   useEffect(() => {
@@ -29,34 +44,38 @@ export default function ChangeProfile({
   }, [userData]);
 
   useEffect(() => {
-    console.log('selectedProfile', selectedProfile);
-    if (isPopupOpen && selectedProfile && profilesState.length > 0) {
-      handleProfileSelected(
-        `Bienvenido ${selectedProfile}, ${userData?.username}.`
-      );
+    if (
+      isShowingPopup &&
+      selectedProfile &&
+      selectedProfile !== activeProfile
+    ) {
+      handleProfileSelected();
     }
-  }, [isPopupOpen, selectedProfile, profilesState]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isShowingPopup, selectedProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleProfileSelected = async (message = '') => {
-    setIsPopupOpen(false);
-    toast.success(message || 'Inicio de sesión exitoso.', toastStyles);
+  const handleProfileSelected = async () => {
+    setIsShowingPopup(false);
+    setChildrenPopup(<></>);
 
-    console.log('handleProfileSelected', selectedProfile);
-    fetchToProcess!({
-      tx: 2590,
-      params: JSON.stringify({
-        userData: {
-          username: userData?.username,
-          activeProfile: selectedProfile,
-        },
+    await fetch(SERVER_URL + '/changeProfile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: userData?.username,
+        activeProfile: selectedProfile,
       }),
+      credentials: 'include',
     })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          setUserData(data.userData);
+      .then((res) => res.json())
+      .then(async (data) => {
+        if (data.ok) {
+          const newUserData = { ...userData, ...data.userData };
+          newUserData.profile = newUserData.activeProfile;
+
+          setUserData(newUserData);
           toast.success(
-            data.result.message || 'Perfil cambiado con éxito.',
+            data.result.message ||
+              `Perfil cambiado con éxito, ${selectedProfile}.`,
             toastStyles
           );
         } else {
@@ -76,34 +95,28 @@ export default function ChangeProfile({
   };
 
   useEffect(() => {
-    console.log('profilesState', profilesState);
-    if (isPopupOpen && profilesState.length === 0) {
-      console.log('Fetching user profiles for', userData?.username);
-      console.log('userData', userData);
-      console.log('fetchToProcess', fetchToProcess);
-      // const style = 'background-color: yellow; color: black; font-style: bold;';
-      // console.log('%cThis message is styled!', style);
+    if (isShowingPopup) {
+      // Limpiar la selección previa para que no se auto-confirme inmediatamente
+      setSelectedProfile('');
       fetchToProcess!({
-        tx: 2580,
+        tx: 2621,
         params: JSON.stringify({
-          nameQuery: 'getUserProfiles',
-          params: {
-            username: userData?.username,
-          },
+          username: userData?.username,
         }),
       })
-        .then((res) => res.json())
-        .then(async (response) => {
-          if (response.ok) {
-            const data = await response.json();
-            console.log('----------------------');
-            console.log('profiles fetched: ', data.result.rows);
-            console.log('----------------------');
-            const profiles = data.result.rows.map(
-              (row: any) => row.profile_name
+        .then((res) => res as unknown as ChangeProfileResponse)
+        .then(async (data) => {
+          if (data.ok) {
+            const profiles = (data.result ?? []).map(
+              (row: { profile_name: string }) => row.profile_name
             );
-            console.log('profiles mapped: ', profiles);
-            setProfilesState(profiles || []);
+            setChildrenPopup(
+              getChildrenPopup({
+                activeProfile,
+                profilesState: profiles,
+                setSelectedProfile,
+              })
+            );
           } else {
             console.error('Error fetching user profiles');
             toast.error(
@@ -120,38 +133,40 @@ export default function ChangeProfile({
           );
         });
     }
-  }, [isPopupOpen, profilesState]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isShowingPopup]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return (
-    isPopupOpen &&
-    profilesState &&
-    profilesState.length > 0 && (
-      <div className='w-full h-full bg-(--gray-background-translucent-light) absolute justify-center items-center flex '>
-        <div className='flex flex-col bg-(--gray-background) w-100 h-55 rounded-lg p-6 gap-10 justify-center items-center shadow-[0_0_30px_var(--primary-color-translucent)]'>
-          <h1 className='text-lg font-bold text-foreground'>
-            Seleccione a continuación su perfil:
-          </h1>
-          <Select onValueChange={setSelectedProfile}>
-            <SelectTrigger
-              className='min-w-[200px] capitalize'
-              value={selectedProfile || activeProfile}
-            >
-              <SelectValue placeholder='Seleccione un perfil' />
-            </SelectTrigger>
-            <SelectContent>
-              {profilesState.map((profile) => (
-                <SelectItem
-                  key={profile}
-                  value={profile}
-                  className='capitalize'
-                >
-                  {profile}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    )
-  );
+  const getChildrenPopup = ({
+    activeProfile,
+    profilesState,
+    setSelectedProfile,
+  }: {
+    activeProfile: string | null;
+    profilesState: string[];
+    setSelectedProfile: (profile: string) => void;
+  }) => {
+    return (
+      <>
+        <h1 className='text-lg font-bold text-foreground'>
+          Seleccione a continuación su perfil:
+        </h1>
+        <Select
+          onValueChange={setSelectedProfile}
+          defaultValue={activeProfile || ''}
+        >
+          <SelectTrigger className='min-w-[200px] capitalize'>
+            <SelectValue placeholder='Seleccione un perfil' />
+          </SelectTrigger>
+          <SelectContent>
+            {profilesState.map((profile) => (
+              <SelectItem key={profile} value={profile} className='capitalize'>
+                {profile}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </>
+    );
+  };
+
+  return <></>;
 }

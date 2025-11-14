@@ -8,11 +8,6 @@ export default class SessionManager {
   createAndUpdateSession = (req, data) => {
     this.createSession(req);
     this.updateSession(req, data);
-    this.dbgr.logColoredText(
-      'Session data after createAndUpdate:' +
-        JSON.stringify(req.session.data, null, 2),
-      ['blue', 'bold']
-    );
   };
 
   createSession = (req) => {

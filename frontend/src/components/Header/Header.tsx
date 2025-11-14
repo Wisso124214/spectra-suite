@@ -22,13 +22,8 @@ export default function Header() {
           credentials: 'include',
         }).then((res) => res);
         const data = await response.json();
-        const userData = data?.userData || null;
-        const newUserData = {
-          ...(userData?.activeProfile
-            ? { profile: userData.activeProfile }
-            : {}),
-          ...(userData?.username ? { username: userData.username } : {}),
-        };
+        const newUserData = { ...userData, ...data?.userData };
+        newUserData.profile = newUserData?.activeProfile || null;
         setUserData(newUserData);
         if (newUserData) {
           navigate('/home');

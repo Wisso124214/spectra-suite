@@ -92,11 +92,6 @@ export default class Session {
 
   changeActiveProfile = async ({ userData }) => {
     try {
-      this.dbgr.logColoredText(
-        'Changing active profile with userData:' +
-          JSON.stringify(userData, null, 2),
-        ['green', 'bold']
-      );
       const { username, activeProfile } = userData;
       if (!username) {
         return {
@@ -115,13 +110,10 @@ export default class Session {
 
       const userProfiles = userProfilesResult.rows.map((up) => up.name);
 
-      this.dbgr.logColoredText(
-        'User profiles available:' + JSON.stringify(userProfiles, null, 2),
-        ['green', 'bold']
-      );
       // Si el perfil solicitado está entre los perfiles asignados
       if (activeProfile && userProfiles.includes(activeProfile)) {
         const { id, email } = userData;
+
         return {
           message: `Bienvenido ${activeProfile}, ${username}`,
           userData: { id, username, email, activeProfile },
@@ -130,10 +122,6 @@ export default class Session {
 
       // Si hay más de uno y no coincide el solicitado, devolvemos la lista para que el cliente elija
       if (userProfiles.length > 1) {
-        this.dbgr.logColoredText(
-          'User profiles available:' + JSON.stringify(userProfiles, null, 2),
-          ['green', 'bold']
-        );
         return {
           message: 'Seleccione el perfil con el que desea iniciar sesión',
           profiles: userProfiles,

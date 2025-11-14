@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { Logs, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
 import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
 
@@ -134,7 +133,7 @@ function renderMenuItem(
       }}
     >
       <SidebarMenuButton asChild>
-        <Link to={item.url ?? '#'} className='flex items-center gap-2'>
+        <div className='flex items-center gap-2'>
           {item.icon &&
             React.createElement(iconMap[item.icon] ?? Menu, {
               className: 'w-4 h-4',
@@ -142,7 +141,7 @@ function renderMenuItem(
           <span className='w-full text-wrap wrap-anywhere line-clamp-1 '>
             {item.title}
           </span>
-        </Link>
+        </div>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
