@@ -6,7 +6,7 @@ import DBMS from '#dbms/dbms.js';
 export const createRoutes = async (app) => {
   const session = new Session();
   const sessionMngr = new SessionManager();
-  const config = new Config().getConfig();
+  const config = new Config();
   const ERROR_CODES = config.ERROR_CODES;
   const dbms = new DBMS();
 

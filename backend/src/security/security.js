@@ -1,6 +1,7 @@
 import DBMS from '#dbms/dbms.js';
 import Utils from '#utils/utils.js';
 import Config from '#config/config.js';
+import executeMethod from '#atx/execute-method.js';
 
 export default class Security {
   constructor() {
@@ -9,6 +10,7 @@ export default class Security {
       this.utils = new Utils();
       this.dbms = new DBMS();
       this.ERROR_CODES = new Config().getErrorCodes();
+      this.executeMethod = executeMethod;
 
       Security.instance = this;
     }
@@ -318,20 +320,6 @@ export default class Security {
       profile: profile || null,
       key,
     };
-  }
-
-  async executeMethod({ className, method, params }) {
-    const c = await import(`#${className}/${className}.js`);
-    let i = new c.default();
-    if (i && typeof i[method] !== 'function') {
-      this.utils.handleError({
-        message: `Método '${method}' no encontrado en clase '${className}'`,
-        errorCode: this.ERROR_CODES.NOT_FOUND,
-      });
-    }
-    const r = await i[method](params);
-    i = null;
-    return r;
   }
 
   /**

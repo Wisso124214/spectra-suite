@@ -3,15 +3,17 @@ import SessionManager from '#session/sessionManager.js';
 import Security from '#security/security.js';
 import Config from '#config/config.js';
 import Repository from '#repository/repository.js';
+import Debugger from '#debugger/debugger.js';
 
 export default class Dispatcher {
   constructor(app) {
     this.app = app;
     this.session = new Session();
     this.security = new Security();
-    this.config = new Config().getConfig();
+    this.config = new Config();
     this.ERROR_CODES = this.config.ERROR_CODES;
     this.repository = new Repository();
+    this.dbgr = new Debugger();
 
     if (!Dispatcher.instance) {
       Dispatcher.instance = this;
@@ -36,7 +38,10 @@ export default class Dispatcher {
             message: 'Usuario no autenticado',
           });
         }
-        console.log('Current session:', currentSession);
+        this.dbgr.logColoredText(
+          'Current session:' + JSON.stringify(currentSession, null, 2),
+          ['cyan', 'bold']
+        );
 
         // Payload esperado: puede venir en body o en header.data (compatibilidad)
         const payload = req.body || JSON.parse(req.headers.data || '{}');
@@ -109,6 +114,11 @@ export default class Dispatcher {
           method,
           params: objectParams,
         });
+
+        this.dbgr.logColoredText(
+          'Execution result:' + JSON.stringify(execResult, null, 2),
+          ['green', 'bold']
+        );
 
         return res.send({
           ok: true,

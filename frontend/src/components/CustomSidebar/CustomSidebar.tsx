@@ -230,7 +230,7 @@ export default function CustomSidebar({ data }: { data: MenuData }) {
       </SidebarHeader>
 
       <SidebarContent className='mt-3'>
-        {data.length === 0 ? (
+        {items.length === 0 ? (
           <SidebarGroup>
             <SidebarGroupLabel>Sin opciones</SidebarGroupLabel>
             <SidebarGroupContent>

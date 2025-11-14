@@ -7,8 +7,9 @@ import Security from '#src/security/security.js';
 import Validator from '#validator/validator.js';
 import Repository from '#repository/repository.js';
 import Dispatcher from '#src/dispatcher/dispatcher.js';
+import Business from '#business/business.js';
 
-const { PORT, SERVER_URL } = new Config().getConfig();
+const { PORT, SERVER_URL } = new Config();
 
 const dbms = new DBMS(null);
 const validator = new Validator(dbms);
@@ -17,6 +18,7 @@ const session = new Session();
 const security = new Security();
 const repository = new Repository();
 const dispatcher = new Dispatcher(app);
+const business = new Business();
 
 (async () => {
   try {
@@ -28,12 +30,10 @@ const dispatcher = new Dispatcher(app);
   }
 })()
   .then(async () => {
+    business.init();
     await dispatcher.init(app);
     await session.init(app);
     await dbms.init();
-    // console.log('dbms: ', dbms.getThis());
-    // console.log('dbms methods:', dbms.getAllDinamicMethodNames());
-    // console.log('session methods:', session.getAllDinamicMethodNames());
   })
   .catch((err) => {
     console.log('Error server listening ', err);

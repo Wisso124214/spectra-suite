@@ -376,12 +376,6 @@ export default class Repository {
   }
 
   async getUsersProfiles() {
-    const selectQuery = `
-      SELECT u.id AS user_id, u.username, p.id AS profile_id, p.name AS profile_name
-      FROM public."user" u
-      JOIN public."user_profile" up ON u.id = up.id_user
-      JOIN public."profile" p ON up.id_profile = p.id
-    `;
     try {
       const res = await this.dbms.executeNamedQuery({
         nameQuery: 'getUsersProfiles',

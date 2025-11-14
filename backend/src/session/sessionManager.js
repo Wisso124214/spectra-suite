@@ -1,10 +1,18 @@
+import Debugger from '#debugger/debugger.js';
+
 export default class SessionManager {
-  constructor() {}
+  constructor() {
+    this.dbgr = new Debugger();
+  }
 
   createAndUpdateSession = (req, data) => {
     this.createSession(req);
     this.updateSession(req, data);
-    console.log('Session data after createAndUpdate:', req.session.data);
+    this.dbgr.logColoredText(
+      'Session data after createAndUpdate:' +
+        JSON.stringify(req.session.data, null, 2),
+      ['blue', 'bold']
+    );
   };
 
   createSession = (req) => {
