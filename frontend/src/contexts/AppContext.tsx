@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState } from 'react';
 import { SERVER_URL } from '../../config';
 import toast from 'react-hot-toast';
 import { toastStyles } from '../../config';
@@ -18,11 +18,24 @@ export type AppContextType = {
   setUserData: (u: User) => void;
   fetchToProcess?: (fetchData: FetchData) => Promise<Response>;
   handleLogout?: () => Promise<void>;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (v: boolean) => void;
+  isShowingPopup: boolean;
+  setIsShowingPopup: (v: boolean) => void;
+  childrenPopup: React.ReactNode;
+  setChildrenPopup: (v: React.ReactNode) => void;
 };
 
 type FetchData = {
   tx: number;
   params: string;
+};
+
+export type BasicResponseToProcess = {
+  ok: boolean;
+  errorCode?: number;
+  message?: string;
+  result: any;
 };
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -33,39 +46,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [userData, setUserData] = useState<User>(null);
-
-  useEffect(() => {
-    console.log('UserData updated in AppContext:', userData);
-  }, [userData]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isShowingPopup, setIsShowingPopup] = useState(false);
+  const [childrenPopup, setChildrenPopup] = useState<React.ReactNode>(null);
 
   const fetchToProcess: (fetchData: FetchData) => Promise<Response> = async (
-    fetchData: FetchData
+    fetchData: FetchData | undefined
   ) => {
     let response: Response;
-    console.log(
-      JSON.stringify(
-        {
-          tx: fetchData?.tx,
-          params: JSON.parse(fetchData?.params || '{}'),
-        },
-        null,
-        2
-      )
-    );
     try {
       response = await fetch(`${SERVER_URL}/toProcess`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tx: fetchData?.tx,
+          tx: fetchData?.tx || -1,
           params: JSON.parse(fetchData?.params || '{}'),
         }),
         credentials: 'include',
       }).then((res) => res);
       const data = await response.json();
-      setUserData(data?.userData || null);
-      console.log('fetchToProcess response:', data);
-      return response;
+
+      const newUserData = data?.userData || null;
+      newUserData.profile = newUserData?.activeProfile || null;
+      setUserData((prevUserData) => ({ ...prevUserData, ...newUserData }));
+      return data;
     } catch (error) {
       console.error('Error fetching toProcess:', error);
       throw error;
@@ -73,7 +77,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   async function handleLogout() {
-    console.log('Logging out user...');
     await fetch(`${SERVER_URL}/logout`, {
       method: 'GET',
       credentials: 'include',
@@ -101,6 +104,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserData,
         fetchToProcess,
         handleLogout,
+        isSidebarOpen,
+        setIsSidebarOpen,
+        isShowingPopup,
+        setIsShowingPopup,
+        childrenPopup,
+        setChildrenPopup,
       }}
     >
       {children}

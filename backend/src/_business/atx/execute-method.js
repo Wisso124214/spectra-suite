@@ -1,7 +1,12 @@
 import getMethod from '#atx/get-method.js';
 
-export default async function executeMethod({ className, method, params }) {
-  const i = await getMethod({ className, method });
+export default async function executeMethod({
+  subsystem,
+  className,
+  method,
+  params,
+}) {
+  let i = await getMethod({ subsystem, className, method });
   const r = await i[method](params);
   i = null;
   return r;

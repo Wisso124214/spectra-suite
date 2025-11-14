@@ -104,6 +104,31 @@ export const createRoutes = async (app) => {
     return res.send(result);
   });
 
+  app.post('/changeProfile', async (req, res) => {
+    if (!existSession(req)) {
+      return res.status(ERROR_CODES.UNAUTHORIZED).send({
+        errorCode: ERROR_CODES.UNAUTHORIZED,
+        message: 'No has iniciado sesión.',
+      });
+    }
+    const userData = req.body || JSON.parse(req.headers.data || '{}');
+    const result = await session.changeActiveProfile({
+      userData,
+    });
+    if (result.errorCode) {
+      return res.status(result.errorCode).send(result);
+    } else {
+      createAndUpdateSession(req, result.userData);
+      return res.send({
+        ok: true,
+        result,
+        userData: result.userData,
+      });
+    }
+  });
+
+  //
+
   // This should be deleted when /toProcess were done
   app.post('/forgotPassword', async (req, res) => {
     let userData = req.body || JSON.parse(req.headers.data || '{}');

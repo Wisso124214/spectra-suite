@@ -133,7 +133,6 @@ export default class DBMS {
   }
 
   async executeNamedQuery({ nameQuery, params = [] }) {
-    this.dbgr.logColoredText('Executing named query: ', ['cyan', 'bold']);
     console.log(nameQuery);
     console.log(JSON.stringify(params, null, 2));
     if (!this.queries || !this.queries[nameQuery]) {
@@ -287,10 +286,6 @@ export default class DBMS {
 
     try {
       const res = await this.query({ query: queryString, params });
-      this.dbgr.logColoredText(
-        'Query result: ' + JSON.stringify(res.rows, null, 2),
-        ['yellow', 'bold']
-      );
       return res;
     } catch (error) {
       return this.utils.handleError({

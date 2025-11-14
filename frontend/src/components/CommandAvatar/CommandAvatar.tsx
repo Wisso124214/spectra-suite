@@ -1,4 +1,4 @@
-import { LogOut, RotateCcwKey } from 'lucide-react';
+import { LogOut, RotateCcwKey, UserRoundPen } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -19,8 +19,7 @@ import { useAppContext } from '../../hooks/useAppContext';
 import ChangeProfile from '../ChangeProfile/ChangeProfile';
 
 export function CommandAvatar() {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const { handleLogout, userData } = useAppContext();
+  const { handleLogout, userData, setIsShowingPopup } = useAppContext();
 
   type MenuItem = {
     icon?: React.ElementType;
@@ -35,9 +34,14 @@ export function CommandAvatar() {
       // heading: 'Suggestions',
       items: [
         {
+          icon: UserRoundPen,
+          label: 'Actualizar cuenta',
+          onClick: () => console.log('Actualizar cuenta'),
+        },
+        {
           icon: RotateCcwKey,
           label: 'Cambiar perfil',
-          onClick: () => setIsPopupOpen(true),
+          onClick: () => setIsShowingPopup(true),
         },
         {
           icon: LogOut,
@@ -147,13 +151,13 @@ export function CommandAvatar() {
 
   return (
     <>
-      <Collapsible className='w-full p-1 flex items-end'>
-        <CollapsibleTrigger className='w-full'>
+      <Collapsible className='w-full p-1 flex items-end absolute bottom-2 left-2'>
+        <CollapsibleTrigger className='w-full z-5'>
           {cardUser({})}
         </CollapsibleTrigger>
-        <CollapsibleContent className='ml-2'>
+        <CollapsibleContent className='ml-5' style={{ zIndex: -1 }}>
           <Command
-            className='min-w-50 max-h-max max-w-70 rounded-lg border shadow-md pb-2 pt-3 '
+            className='min-w-50 max-h-max max-w-70 rounded-lg border shadow-md pb-2 pt-3 px-1.5 '
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: 'rgba(100, 100, 100, 0.5) transparent',
@@ -191,10 +195,7 @@ export function CommandAvatar() {
           </Command>
         </CollapsibleContent>
       </Collapsible>
-      <ChangeProfile
-        isPopupOpen={isPopupOpen}
-        setIsPopupOpen={setIsPopupOpen}
-      />
+      <ChangeProfile />
     </>
   );
 }

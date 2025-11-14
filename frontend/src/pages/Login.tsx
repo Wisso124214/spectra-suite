@@ -7,6 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
@@ -14,17 +21,19 @@ import { SERVER_URL } from '../../config';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toastStyles } from '../../config';
-import Popup from '@/components/CustomPopup/Popup';
 import useAppContext from '@/hooks/useAppContext';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [profiles, setProfiles] = useState([]);
   const [profileSelected, setProfileSelected] = useState('');
   const navigate = useNavigate();
-  const { setUserData } = useAppContext();
+  const { setUserData, userData, setIsShowingPopup, setChildrenPopup } =
+    useAppContext();
+
+  useEffect(() => {
+    setProfileSelected(userData?.profile || '');
+  }, [userData]);
 
   useEffect(() => {
     if (profileSelected) {
@@ -33,47 +42,47 @@ export default function Login() {
   }, [profileSelected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleProfileSelected = async (message = '') => {
-    setIsPopupOpen(false);
+    setIsShowingPopup(false);
     toast.success(message || 'Inicio de sesión exitoso.', toastStyles);
 
-    await fetch(SERVER_URL + '/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        activeProfile: profileSelected,
-      }),
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then(async (response) => {
-        if (!response.errorCode) {
-          const newUserData = {
-            ...(profileSelected ? { profile: profileSelected } : {}),
-            ...(username ? { username } : {}),
-          };
+    if (!userData?.profile) {
+      await fetch(SERVER_URL + '/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          activeProfile: profileSelected,
+        }),
+        credentials: 'include',
+      })
+        .then((res) => res.json())
+        .then(async (response) => {
+          if (!response.errorCode) {
+            const newUserData = { ...userData, ...response.userData };
+            newUserData.profile = newUserData.activeProfile;
 
-          setUserData(newUserData);
-          setTimeout(() => {
-            navigate('/home');
-          }, 1000);
-        } else {
+            setUserData(newUserData);
+            setTimeout(() => {
+              navigate('/home');
+            }, 1000);
+          } else {
+            toast.error(
+              response.message ||
+                'Error del servidor. Intente de nuevo más tarde.',
+              toastStyles
+            );
+          }
+        })
+        .catch(async () => {
           toast.error(
-            response.message ||
-              'Error del servidor. Intente de nuevo más tarde.',
+            'Error al obtener datos del usuario. Por favor, intente más tarde.',
             toastStyles
           );
-        }
-      })
-      .catch(async () => {
-        toast.error(
-          'Error al obtener datos del usuario. Por favor, intente más tarde.',
-          toastStyles
-        );
-      });
+        });
+    }
   };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -94,10 +103,22 @@ export default function Login() {
       .then(async (response) => {
         if (!response.errorCode) {
           if (response.profiles && response.profiles.length > 1) {
-            setProfiles(response.profiles);
-            setIsPopupOpen(true);
+            setIsShowingPopup(true);
+            setChildrenPopup(getChildrenPopup(response.profiles));
           } else {
-            handleProfileSelected(response.message);
+            const data = await response.json();
+            const userData = data?.userData || null;
+            const newUserData = {
+              ...(userData?.activeProfile
+                ? { profile: userData.activeProfile }
+                : {}),
+              ...(userData?.username ? { username: userData.username } : {}),
+            };
+            setUserData(newUserData);
+            setProfileSelected(response.userData?.activeProfile || null);
+            setTimeout(() => {
+              navigate('/home');
+            }, 1000);
           }
         } else {
           toast.error(
@@ -112,6 +133,28 @@ export default function Login() {
           toastStyles
         );
       });
+  };
+
+  const getChildrenPopup = (profiles: string[]) => {
+    return (
+      <>
+        <h1 className='text-lg font-bold text-foreground'>
+          Seleccione a continuación su perfil:
+        </h1>
+        <Select onValueChange={setProfileSelected}>
+          <SelectTrigger className='min-w-[200px] capitalize'>
+            <SelectValue placeholder='Seleccione un perfil' />
+          </SelectTrigger>
+          <SelectContent>
+            {profiles.map((profile) => (
+              <SelectItem key={profile} value={profile} className='capitalize'>
+                {profile}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </>
+    );
   };
 
   return (
@@ -173,9 +216,6 @@ export default function Login() {
           </form>
         </CardContent>
       </Card>
-      {isPopupOpen && (
-        <Popup profiles={profiles} setProfileSelected={setProfileSelected} />
-      )}
     </div>
   );
 }

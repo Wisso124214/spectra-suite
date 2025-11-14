@@ -13,8 +13,10 @@ export default class Business {
   }
 
   init() {
+    const excludeFolders = ['ftx'];
     const files = fs.readdirSync(this.rootPath);
     this.folderPaths = files.filter((file) => {
+      if (excludeFolders.includes(file)) return false;
       const filePath = path.join(this.rootPath, file);
       return fs.statSync(filePath).isDirectory();
     });

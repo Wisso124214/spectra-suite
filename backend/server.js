@@ -29,9 +29,9 @@ const business = new Business();
 })()
   .then(async () => {
     business.init();
-    await dispatcher.init(app);
     await session.init(app);
     await dbms.init();
+    await dispatcher.init(app); //Always after session init
   })
   .catch((err) => {
     console.log('Error server listening ', err);

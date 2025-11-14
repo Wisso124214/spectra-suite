@@ -92,11 +92,6 @@ export default class Session {
 
   changeActiveProfile = async ({ userData }) => {
     try {
-      this.dbgr.logColoredText(
-        'Changing active profile with userData:' +
-          JSON.stringify(userData, null, 2),
-        ['green', 'bold']
-      );
       const { username, activeProfile } = userData;
       if (!username) {
         return {
@@ -115,13 +110,10 @@ export default class Session {
 
       const userProfiles = userProfilesResult.rows.map((up) => up.name);
 
-      this.dbgr.logColoredText(
-        'User profiles available:' + JSON.stringify(userProfiles, null, 2),
-        ['green', 'bold']
-      );
       // Si el perfil solicitado está entre los perfiles asignados
       if (activeProfile && userProfiles.includes(activeProfile)) {
         const { id, email } = userData;
+
         return {
           message: `Bienvenido ${activeProfile}, ${username}`,
           userData: { id, username, email, activeProfile },
@@ -130,10 +122,6 @@ export default class Session {
 
       // Si hay más de uno y no coincide el solicitado, devolvemos la lista para que el cliente elija
       if (userProfiles.length > 1) {
-        this.dbgr.logColoredText(
-          'User profiles available:' + JSON.stringify(userProfiles, null, 2),
-          ['green', 'bold']
-        );
         return {
           message: 'Seleccione el perfil con el que desea iniciar sesión',
           profiles: userProfiles,
@@ -214,7 +202,7 @@ export default class Session {
     }
 
     // Usar executeJsonTransaction para que todas las operaciones de registro
-    // (insertUser, getUserWhere, setUserProfile) se ejecuten en una sola transacción
+    // (insertUser, getUsersWhere, setUserProfile) se ejecuten en una sola transacción
     if (!this.dbms.queries) {
       await this.dbms.init();
     }
@@ -228,7 +216,7 @@ export default class Session {
           userData.status,
           userData.register_date,
         ],
-        getUserWhere: [userData.username],
+        getUsersWhere: [userData.username],
         setUserProfile: [userData.username, userData.activeProfile],
       };
 
@@ -237,7 +225,7 @@ export default class Session {
         'Error ejecutando la transacción de registro'
       );
 
-      // results es un array con los resultados en el mismo orden: [insertUserRes, getUserWhereRes, setUserProfileRes]
+      // results es un array con los resultados en el mismo orden: [insertUserRes, getUsersWhereRes, setUserProfileRes]
       const fetchRes = results && results[1];
       const postedUser = fetchRes?.rows?.[0];
       if (!postedUser) {

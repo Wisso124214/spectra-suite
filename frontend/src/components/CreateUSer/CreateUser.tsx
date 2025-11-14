@@ -175,6 +175,7 @@ export default function CreateUser({
         'Error en el registro. Por favor, intente más tarde.',
         toastStyles
       );
+      console.error('Error en el registro:', err);
     }
   };
 

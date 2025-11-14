@@ -24,9 +24,18 @@ function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function SubsystemSelect({ subsystems = [] }: { subsystems: string[] }) {
+export function SubsystemSelect({
+  subsystems,
+  subsystemSelected,
+  setSubsystemSelected,
+  defaultOption = 'subsistema...',
+}: {
+  subsystems: string[];
+  subsystemSelected: string;
+  setSubsystemSelected: (v: string) => void;
+  defaultOption?: string;
+}) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState('');
 
   return (
     <div className='mt-2 ml-14'>
@@ -36,32 +45,41 @@ export function SubsystemSelect({ subsystems = [] }: { subsystems: string[] }) {
             variant='outline'
             role='combobox'
             aria-expanded={open}
-            className='w-[200px] justify-between'
+            className={
+              'w-[200px] justify-between ' +
+              (subsystemSelected === defaultOption
+                ? 'text-gray-400 font-normal italic'
+                : '')
+            }
           >
-            {value ? capitalize(value) : capitalize(subsystems[0])}
+            {capitalize(subsystemSelected)}
             <ChevronsUpDown className='opacity-50' />
           </Button>
         </PopoverTrigger>
         <PopoverContent className='w-[200px] p-0 z-20'>
           <Command>
-            <CommandInput placeholder='Search framework...' className='h-9' />
+            <CommandInput placeholder='Search subsystem...' className='h-9' />
             <CommandList>
-              <CommandEmpty>No framework found.</CommandEmpty>
+              <CommandEmpty>No subsystem found.</CommandEmpty>
               <CommandGroup>
-                {subsystems.map((framework) => (
+                {subsystems.map((subsystem) => (
                   <CommandItem
-                    key={framework}
-                    value={framework}
+                    key={subsystem}
+                    value={subsystem}
                     onSelect={(currentValue) => {
-                      setValue(currentValue === value ? '' : currentValue);
+                      setSubsystemSelected(
+                        currentValue === subsystemSelected ? '' : currentValue
+                      );
                       setOpen(false);
                     }}
                   >
-                    {capitalize(framework)}
+                    {capitalize(subsystem)}
                     <Check
                       className={cn(
                         'ml-auto',
-                        value === framework ? 'opacity-100' : 'opacity-0'
+                        subsystemSelected === subsystem
+                          ? 'opacity-100'
+                          : 'opacity-0'
                       )}
                     />
                   </CommandItem>

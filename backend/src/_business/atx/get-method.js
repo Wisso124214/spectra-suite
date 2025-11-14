@@ -2,7 +2,7 @@ import Utils from '#utils/utils.js';
 import Config from '#config/config.js';
 import Business from '#business/business.js';
 
-export default async function getMethod({ className, method }) {
+export default async function getMethod({ subsystem, className, method }) {
   const utils = new Utils();
   const config = new Config();
   const business = new Business();
@@ -27,9 +27,15 @@ export default async function getMethod({ className, method }) {
       });
     }
     path = `#${className}/${fileName}`;
+  } else if (subsystem === 'ftx') {
+    path = `#${subsystem}/${className}.js`;
   } else {
     path = `#${className}/${className}.js`;
   }
+
+  console.log(
+    `Importing method from path: ${path} ---- ${subsystem} / ${className} / ${method}`
+  );
 
   const c = await import(path);
   let i = new c.default();
@@ -39,5 +45,5 @@ export default async function getMethod({ className, method }) {
       errorCode: ERROR_CODES.NOT_FOUND,
     });
   }
-  return i[method];
+  return i;
 }
