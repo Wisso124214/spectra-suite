@@ -73,8 +73,6 @@ export default class Session {
         };
       }
 
-      // Mezclamos datos de login con los del usuario almacenado
-      // Nunca devolver el hash ni la contraseña en claro
       const mergedUserData = { ...user, activeProfile: userData.activeProfile };
       delete mergedUserData.password;
       const profileResult = await this.changeActiveProfile({

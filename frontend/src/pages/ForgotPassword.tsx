@@ -45,10 +45,7 @@ export default function ForgotPassword() {
               'Se ha enviado un correo de verificación a la dirección ingresada. Por favor, revise su correo y siga los pasos indicados.',
             toastStyles
           );
-          localStorage.setItem(
-            'userData',
-            JSON.stringify({ isLoggedIn: true })
-          );
+          // No modificamos el estado de sesión local aquí; el usuario solo recibió el correo
         } else {
           toast.error(
             response.message || 'Hubo un error inesperado. Intente nuevamente',

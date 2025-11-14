@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
   Collapsible,
@@ -26,6 +27,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { Home as HomeIcon, List, GitBranch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
+import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
 
 export type MenuData = MenuItem[];
 
@@ -240,6 +242,10 @@ export default function CustomSidebar({ data }: { data: MenuData }) {
           items.map((it, i) => renderMenuItem(it, `root-${i}`))
         )}
       </SidebarContent>
+      <SidebarFooter className='flex justify-center items-center'>
+        {/* <MenuAvatar /> */}
+        <CommandAvatar />
+      </SidebarFooter>
     </Sidebar>
   );
 }

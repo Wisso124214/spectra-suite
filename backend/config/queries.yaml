@@ -10,7 +10,7 @@
       },
       orderArray: ['username', 'password', 'email', 'status', 'register_date']
   },
-  'getUserWhere': {
+  'getUsersWhere': {
     query: 'SELECT * FROM public."user" WHERE username = $1;',
       structure_params: { username: 'string' },
       orderArray: ['username']

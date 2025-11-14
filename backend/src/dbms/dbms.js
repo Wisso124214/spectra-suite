@@ -69,7 +69,6 @@ export default class DBMS {
       await activePool.end();
       console.log('Pool de base de datos finalizado');
     } catch (err) {
-      // No propagar en teardown; solo advertir para no romper flujos de prueba
       console.warn(
         'Advertencia al finalizar pool de base de datos:',
         err?.message || err
@@ -132,6 +131,7 @@ export default class DBMS {
   }
 
   async executeNamedQuery({ nameQuery, params = [] }) {
+    console.log('Executing named query:', nameQuery, 'with params:', params);
     if (!this.queries || !this.queries[nameQuery]) {
       this.utils.handleError({
         message: `Consulta nombrada '${nameQuery}' no encontrada`,

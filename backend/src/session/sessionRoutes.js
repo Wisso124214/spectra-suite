@@ -28,6 +28,7 @@ export const createRoutes = async (app) => {
   app.post('/login', async (req, res) => {
     if (existSession(req)) {
       return res.send({
+        errorCode: ERROR_CODES.BAD_REQUEST,
         message: `Ya has iniciado sesión. Cierra la sesión para continuar.`,
         redirect: '/home',
       });
@@ -36,12 +37,10 @@ export const createRoutes = async (app) => {
     const userData = req.body || JSON.parse(req.headers.data || '{}');
 
     const ret = await session.login({ userData });
-    console.log('Login result:', ret);
 
     if (ret?.userData) {
       const sanitized = { ...ret.userData };
       delete sanitized.password;
-      console.log('Sanitized user data for session:', sanitized);
       createAndUpdateSession(req, sanitized);
       return res.send(ret);
     } else if (ret?.profiles) {

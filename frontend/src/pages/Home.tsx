@@ -6,6 +6,7 @@ import { SERVER_URL } from '../../config';
 import { type MenuData } from '../components/CustomSidebar/CustomSidebar';
 // import CreateUser from '../components/CreateUSer/CreateUser';
 import DeleteUser from '@/components/DeleteUser/DeleteUser';
+import useAppContext from '@/hooks/useAppContext';
 
 export default function Home() {
   // MenuData ya está definido como MenuItem[] en CustomSidebar
@@ -13,19 +14,14 @@ export default function Home() {
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rawResponse, setRawResponse] = useState<any | null>(null); // para mostrar JSON.stringify
+  const [rawResponse, setRawResponse] = useState<unknown | null>(null); // para mostrar JSON.stringify
 
   const navigate = useNavigate();
+  const { userData } = useAppContext();
 
   useEffect(() => {
-    // lee sessionStorage primero, luego localStorage
-    const rawSaved =
-      sessionStorage.getItem('userData') ?? localStorage.getItem('userData');
-    const userData = rawSaved
-      ? JSON.parse(rawSaved)
-      : { isLoggedIn: false, profile: '', username: null };
-
-    if (!userData.isLoggedIn) {
+    // use AppContext userData instead of session/local storage
+    if (!userData) {
       navigate('/login');
       return;
     }

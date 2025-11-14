@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
 import { toastStyles } from '../../config';
 import { SERVER_URL } from '../../config';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   validateUsername,
   validateEmail,
@@ -20,6 +20,7 @@ import {
   validateConfirmPassword,
 } from '@/utils/validator/validator.tsx';
 import { useNavigate } from 'react-router-dom';
+import useAppContext from '@/hooks/useAppContext';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -32,6 +33,7 @@ export default function Register() {
   const [errorConfirmPassword, setErrorConfirmPassword] = useState('');
 
   const navigate = useNavigate();
+  const { setUserData } = useAppContext();
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

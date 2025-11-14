@@ -8,10 +8,10 @@ import {
 
 export default function Popup({
   profiles,
-  setSelectedProfile,
+  setProfileSelected,
 }: {
   profiles: string[];
-  setSelectedProfile: (profile: string) => void;
+  setProfileSelected: (v: string) => void;
 }) {
   return (
     <div className='w-full h-full bg-(--gray-background-translucent-light) absolute justify-center items-center flex '>
@@ -19,7 +19,7 @@ export default function Popup({
         <h1 className='text-lg font-bold text-foreground'>
           Seleccione a continuación su perfil:
         </h1>
-        <Select onValueChange={setSelectedProfile}>
+        <Select onValueChange={setProfileSelected}>
           <SelectTrigger className='min-w-[200px] capitalize'>
             <SelectValue placeholder='Seleccione un perfil' />
           </SelectTrigger>
