@@ -23,10 +23,10 @@
     "#dispatcher/*": "./src/dispatcher/*",
     "#formatter/*": "./src/formatter/*",
     "#business/*": "./src/_business/*",
-    "#atx/*": "./src/business/atx/*",
-    "#bo/*": "./src/business/bo/*",
-    "#backer-scm/*": "./src/business/backer-scm/*",
-    "#ftx/*": "./src/business/ftx/*"
+    "#atx/*": "./src/_business/atx/*",
+    "#bo/*": "./src/_business/bo/*",
+    "#backer-scm/*": "./src/_business/backer-scm/*",
+    "#ftx/*": "./src/_business/ftx/*"
   },
   "scripts": {
     "test": "npm run test:integration",
