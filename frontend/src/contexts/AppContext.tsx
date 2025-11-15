@@ -67,7 +67,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const data = await response.json();
 
       const newUserData = data?.userData || null;
-      newUserData.profile = newUserData?.activeProfile || null;
+      if (newUserData?.activeProfile)
+        newUserData.profile = newUserData.activeProfile;
+
       setUserData((prevUserData) => ({ ...prevUserData, ...newUserData }));
       return data;
     } catch (error) {

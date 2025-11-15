@@ -222,8 +222,8 @@ export default function Home() {
     <>
       <div
         className={
-          'flex flex-col p-6 gap-10 justify-center items-center ' +
-          (isSidebarOpen ? 'ml-60 w-[calc(100vw-360px)] ' : 'w-full')
+          'flex flex-col p-6 gap-10 justify-center items-center w-full ' +
+          (isSidebarOpen ? 'md:ml-60 md:w-[calc(100vw-360px)] ' : '')
         }
       >
         <CreateUser Title={'Crear Usuario'} />

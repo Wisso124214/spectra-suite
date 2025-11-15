@@ -25,6 +25,11 @@ body {
   --gray-translucent: color-mix(in oklch, var(--gray-color) 40%, transparent);
   --box-shadow-color: rgba(255, 255, 255, 0.6);
 
+  --gray-background-dark: color-mix(
+    in oklch,
+    var(--gray-color) 93%,
+    var(--foreground-absolute)
+  );
   --gray-background-light: color-mix(
     in oklch,
     var(--gray-color) 93%,
@@ -37,7 +42,7 @@ body {
   );
   --gray-background-light-3: color-mix(
     in oklch,
-    var(--gray-color) 86%,
+    var(--gray-color) 70%,
     var(--background-absolute)
   );
   --gray-background: var(--gray-color);
@@ -99,6 +104,11 @@ body {
     in oklch,
     var(--primary-color) 90%,
     var(--foreground-absolute)
+  );
+  --primary-color-gray: color-mix(
+    in oklch,
+    var(--primary-color) 20%,
+    var(--gray-background-dark)
   );
 
   --tertiary-color-light: color-mix(

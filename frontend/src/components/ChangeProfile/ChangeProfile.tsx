@@ -70,7 +70,9 @@ export default function ChangeProfile() {
       .then(async (data) => {
         if (data.ok) {
           const newUserData = { ...userData, ...data.userData };
-          newUserData.profile = newUserData.activeProfile;
+
+          if (newUserData?.activeProfile)
+            newUserData.profile = newUserData.activeProfile;
 
           setUserData(newUserData);
           toast.success(
