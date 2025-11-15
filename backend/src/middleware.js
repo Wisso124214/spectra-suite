@@ -17,6 +17,11 @@ app.use(
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 5 * 60 * 1000, // 5 minutes
+    },
   })
 );
 

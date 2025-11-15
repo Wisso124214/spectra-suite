@@ -31,6 +31,14 @@ type FetchData = {
   params: string;
 };
 
+export type ChangeProfileResponse = BasicResponseToProcess & {
+  userData?: User;
+  result: {
+    message?: string;
+    rows?: { profile_name: string }[];
+  };
+};
+
 export type BasicResponseToProcess = {
   ok: boolean;
   errorCode?: number;
