@@ -16,18 +16,17 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, Logs, Menu } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
-import { Logs, Menu } from 'lucide-react';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
 import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
 import { CustomTooltip } from '../CustomTooltip/CustomTooltip';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export type MenuData = MenuItem[];
 
@@ -37,6 +36,7 @@ type MenuItem = {
   icon?: string; // clave de icono (p. ej. "Home" o "List")
   children?: MenuItem[];
   defaultOpen?: boolean;
+  component?: React.ReactNode;
 };
 
 const iconMap: Record<string, React.ElementType> = {
@@ -50,6 +50,8 @@ function renderMenuItem(
   key: string,
   deep = 0
 ): React.ReactNode {
+  const { setContentHome } = useAppContext();
+
   if (item.children && item.children.length > 0) {
     return deep < 2 ? (
       <Collapsible key={key} className='group/collapsible'>
@@ -139,6 +141,10 @@ function renderMenuItem(
 
   return (
     <SidebarMenuItem
+      onClick={() => {
+        console.log('Setting contentHome to:', item.component);
+        setContentHome(item.component);
+      }}
       className={'rounded-lg ' + (deep > 2 ? 'w-full' : 'mr-2')}
       key={key}
       style={{

@@ -1,9 +1,15 @@
 import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item';
 import { Spinner } from '@/components/ui/spinner';
 
-export default function Loader() {
+export default function Loader({ className = '' }) {
   return (
-    <div className='flex w-full flex-col gap-10 [--radius:1rem] items-center'>
+    <div
+      className={
+        'flex w-full flex-col gap-10 [--radius:1rem] items-center' +
+        ' ' +
+        className
+      }
+    >
       <Item
         variant='muted'
         className='absolute flex flex-row [--radius:1rem] w-full max-w-xs'

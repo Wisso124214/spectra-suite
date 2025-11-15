@@ -1,9 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap');
 
-body {
+body * {
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-color: var(--gray-background-light-2) transparent;
+}
 
+body {
   overflow: hidden;
   user-select: none;
 

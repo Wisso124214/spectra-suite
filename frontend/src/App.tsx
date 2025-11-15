@@ -31,7 +31,7 @@ function AppContent() {
 
   return (
     <ThemeProvider defaultTheme='dark' storageKey='vite-ui-theme'>
-      <div className='mt-[6vh] max-h-[90vh] flex flex-col p-0 m-0 overflow-y-auto self-center w-full items-center h-full'>
+      <div className='flex flex-col p-0 m-0 self-center w-full overflow-x-hidden overflow-y-auto items-center h-full'>
         <Header />
         <Routes>
           {/* Rutas públicas */}

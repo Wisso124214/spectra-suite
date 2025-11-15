@@ -181,29 +181,29 @@ export default function ManageUsers({ Title }: { Title: string }) {
 
   return (
     <div
-      className="w-full max-w-md p-4 border rounded-md bg-background z-10 
-    max-h-[80vh] overflow-y-auto pr-4"
+      className='w-full max-w-md p-4 border rounded-md bg-background z-10 
+    max-h-[80vh] overflow-y-auto pr-4'
     >
       <form onSubmit={handleUpdate} noValidate>
         <FieldSet>
           <FieldDescription>{Title}</FieldDescription>
 
-          <FieldGroup className="grid grid-cols-2 gap-4">
+          <FieldGroup className='grid grid-cols-2 gap-4'>
             {/* Username */}
             <Field>
-              <FieldLabel htmlFor="username">Username</FieldLabel>
+              <FieldLabel htmlFor='username'>Username</FieldLabel>
               <Input
-                id="username"
+                id='username'
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);
                   if (e.target.value.trim()) setErrorUsername('');
                 }}
-                placeholder="Username"
-                className="w-full"
+                placeholder='Username'
+                className='w-full'
               />
               {errorUsername && (
-                <p className="text-sm text-red-500">{errorUsername}</p>
+                <p className='text-sm text-red-500'>{errorUsername}</p>
               )}
             </Field>
 
@@ -216,8 +216,8 @@ export default function ManageUsers({ Title }: { Title: string }) {
                   setSelectedPerfil(v);
                 }}
               >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selecciona perfil" />
+                <SelectTrigger className='w-[180px]'>
+                  <SelectValue placeholder='Selecciona perfil' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -233,52 +233,52 @@ export default function ManageUsers({ Title }: { Title: string }) {
             </Field>
 
             {/* Email (ocupa 2 columnas) */}
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Field className='col-span-2'>
+              <FieldLabel htmlFor='email'>Email</FieldLabel>
               <Input
-                id="email"
+                id='email'
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (e.target.value.trim()) setErrorEmail('');
                 }}
-                placeholder="email@dominio.com"
-                className="w-full"
+                placeholder='email@dominio.com'
+                className='w-full'
               />
               {errorEmail && (
-                <p className="text-sm text-red-500">{errorEmail}</p>
+                <p className='text-sm text-red-500'>{errorEmail}</p>
               )}
             </Field>
 
             {/* Password (nuevo valor opcional) */}
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="password">
+            <Field className='col-span-2'>
+              <FieldLabel htmlFor='password'>
                 Nueva contraseña (opcional)
               </FieldLabel>
               <Input
-                id="password"
-                type="password"
+                id='password'
+                type='password'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Dejar vacío para no cambiar"
-                className="w-full"
+                placeholder='Dejar vacío para no cambiar'
+                className='w-full'
               />
             </Field>
           </FieldGroup>
 
           {/* CommandDialog: buscar usuario a editar */}
-          <FieldGroup className="mt-4">
+          <FieldGroup className='mt-4'>
             <CommandDialog open={open} onOpenChange={setOpen}>
-              <CommandInput placeholder="Buscar usuario..." />
+              <CommandInput placeholder='Buscar usuario...' />
               <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
-                <CommandGroup heading="Usuarios">
+                <CommandGroup heading='Usuarios'>
                   {data.map((item) => (
                     <CommandItem
                       key={item.id}
                       onSelect={() => handleSelectForEdit(item)}
                     >
-                      <User className="mr-2" />
+                      <User className='mr-2' />
                       <span>{item.username}</span>
                       <CommandShortcut>{item.profile}</CommandShortcut>
                     </CommandItem>
@@ -289,19 +289,19 @@ export default function ManageUsers({ Title }: { Title: string }) {
           </FieldGroup>
 
           {/* Tabla resumen del usuario seleccionado */}
-          <FieldGroup className="mt-4">
+          <FieldGroup className='mt-4'>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
-                  <TableHead className="text-right">Profile</TableHead>
+                  <TableHead className='text-right'>Profile</TableHead>
                 </TableRow>
               </TableHeader>
               <tbody>
                 {selectedUser ? (
                   <TableRow key={selectedUser.id}>
                     <TableHead>{selectedUser.username}</TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className='text-right'>
                       {selectedUser.profile}
                     </TableHead>
                   </TableRow>
@@ -309,7 +309,7 @@ export default function ManageUsers({ Title }: { Title: string }) {
                   <tr>
                     <td
                       colSpan={2}
-                      className="py-4 text-center text-sm text-muted-foreground"
+                      className='py-4 text-center text-sm text-muted-foreground'
                     >
                       No hay usuario seleccionado
                     </td>
@@ -320,26 +320,26 @@ export default function ManageUsers({ Title }: { Title: string }) {
           </FieldGroup>
 
           {/* Botones: Abrir buscador / Actualizar / Eliminar / Limpiar */}
-          <FieldGroup className="grid grid-cols-4 gap-2 mt-4">
-            <Button type="button" onClick={() => setOpen(true)}>
+          <FieldGroup className='grid grid-cols-4 gap-2 mt-4'>
+            <Button type='button' onClick={() => setOpen(true)}>
               Buscar
             </Button>
             <Button
-              type="submit"
-              className="col-span-1"
+              type='submit'
+              className='col-span-1'
               disabled={!selectedUser}
             >
               Actualizar
             </Button>
             <Button
-              type="button"
-              variant="destructive"
+              type='button'
+              variant='destructive'
               onClick={handleDelete}
               disabled={!selectedUser}
             >
               Eliminar
             </Button>
-            <Button type="button" variant="outline" onClick={handleClear}>
+            <Button type='button' variant='outline' onClick={handleClear}>
               Limpiar
             </Button>
           </FieldGroup>

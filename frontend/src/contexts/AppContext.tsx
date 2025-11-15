@@ -3,6 +3,7 @@ import { SERVER_URL } from '../../config';
 import toast from 'react-hot-toast';
 import { toastStyles } from '../../config';
 import { useNavigate } from 'react-router-dom';
+import Loader from '@/components/Loader/Loader';
 
 export type User = {
   id?: string;
@@ -10,21 +11,6 @@ export type User = {
   email?: string;
   profile?: string;
 } | null;
-
-export type AppContextType = {
-  sidebarOpen: boolean;
-  setSidebarOpen: (v: boolean) => void;
-  userData: User;
-  setUserData: (u: User) => void;
-  fetchToProcess?: (fetchData: FetchData) => Promise<Response>;
-  handleLogout?: () => Promise<void>;
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (v: boolean) => void;
-  isShowingPopup: boolean;
-  setIsShowingPopup: (v: boolean) => void;
-  childrenPopup: React.ReactNode;
-  setChildrenPopup: (v: React.ReactNode) => void;
-};
 
 type FetchData = {
   tx: number;
@@ -46,6 +32,23 @@ export type BasicResponseToProcess = {
   result: any;
 };
 
+export type AppContextType = {
+  sidebarOpen: boolean;
+  setSidebarOpen: (v: boolean) => void;
+  userData: User;
+  setUserData: (u: User) => void;
+  fetchToProcess?: (fetchData: FetchData) => Promise<Response>;
+  handleLogout?: () => Promise<void>;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (v: boolean) => void;
+  isShowingPopup: boolean;
+  setIsShowingPopup: (v: boolean) => void;
+  childrenPopup: React.ReactNode;
+  setChildrenPopup: (v: React.ReactNode) => void;
+  contentHome: React.ReactNode;
+  setContentHome: (v: React.ReactNode) => void;
+};
+
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -57,6 +60,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isShowingPopup, setIsShowingPopup] = useState(false);
   const [childrenPopup, setChildrenPopup] = useState<React.ReactNode>(null);
+  const [contentHome, setContentHome] = useState<React.ReactNode>(null);
 
   const fetchToProcess: (fetchData: FetchData) => Promise<Response> = async (
     fetchData: FetchData | undefined
@@ -120,6 +124,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsShowingPopup,
         childrenPopup,
         setChildrenPopup,
+        contentHome,
+        setContentHome,
       }}
     >
       {children}
