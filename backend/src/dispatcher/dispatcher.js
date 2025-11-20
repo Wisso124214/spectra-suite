@@ -41,7 +41,6 @@ export default class Dispatcher {
     const { existSession, createAndUpdateSession, destroySession, getSession } =
       sessionMngr;
 
-    // -------------------- USERNAMES --------------------
     app.get('/usernames', async (req, res) => {
       try {
         const result = await dbms.executeNamedQuery({ nameQuery: 'getUsers' });
@@ -54,7 +53,6 @@ export default class Dispatcher {
       }
     });
 
-    // -------------------- LOGIN --------------------
     app.post('/login', async (req, res) => {
       if (existSession(req)) {
         return res.send({
@@ -79,7 +77,6 @@ export default class Dispatcher {
           .send({ message: 'Error al iniciar sesión' });
     });
 
-    // -------------------- REGISTER --------------------
     app.post('/register', async (req, res) => {
       if (existSession(req)) {
         return res.send({
@@ -114,7 +111,6 @@ export default class Dispatcher {
       return res.send({ ...registerResult, ...loginResult });
     });
 
-    // -------------------- LOGOUT --------------------
     app.get('/logout', async (req, res) => {
       if (!existSession(req))
         return res.send({
@@ -125,7 +121,6 @@ export default class Dispatcher {
       return res.send(result);
     });
 
-    // -------------------- CHANGE PROFILE --------------------
     app.post('/changeProfile', async (req, res) => {
       if (!existSession(req))
         return res.status(ERROR_CODES.UNAUTHORIZED).send({
@@ -139,7 +134,6 @@ export default class Dispatcher {
       return res.send({ ok: true, result, userData: result.userData });
     });
 
-    // -------------------- FORGOT PASSWORD --------------------
     app.post('/forgotPassword', async (req, res) => {
       const userData = req.body || JSON.parse(req.headers.data || '{}');
       const origin = req.headers.origin;
@@ -148,7 +142,6 @@ export default class Dispatcher {
       return res.send(ret);
     });
 
-    // -------------------- RESET PASSWORD --------------------
     app.post('/resetPassword', async (req, res) => {
       const userData = req.body || JSON.parse(req.headers.data || '{}');
       const ret = await session.resetPassword({ userData });

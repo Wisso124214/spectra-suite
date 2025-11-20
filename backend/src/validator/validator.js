@@ -1,4 +1,4 @@
-import Config from "../../config/config.js";
+import Config from '../../config/config.js';
 import z from 'zod';
 
 export default class Validator {
@@ -15,38 +15,20 @@ export default class Validator {
 
     if (!Validator.instance) {
       this.types = {
-        array: (value) => Array.isArray(value),
-        int: (value) => Number.isInteger(value),
-        float: (value) => Number(value) === value && !Number.isInteger(value),
-        string: (value) => typeof value === 'string',
-        boolean: (value) => typeof value === 'boolean',
-        date: (value) => value instanceof Date,
-        object: (value) => typeof value === 'object' && value !== null,
-        function: (value) => typeof value === 'function',
-        number: (value) => typeof value === 'number',
-        strings_array: (value) =>
-          Array.isArray(value) &&
-          value.every((item) => typeof item === 'string'),
-        object_of_strings: (value) =>
-          value !== null &&
-          typeof value === 'object' &&
-          Object.values(value).every((item) => typeof item === 'string'),
-        object_of_strings_array: (value) =>
-          value !== null &&
-          typeof value === 'object' &&
-          Object.values(value).every(
-            (item) =>
-              Array.isArray(item) &&
-              item.every((subItem) => typeof subItem === 'string')
-          ),
-        array_of_objects: (value) =>
-          Array.isArray(value) &&
-          value.every((item) => item !== null && typeof item === 'object'),
-        object_of_arrays: (value) =>
-          value !== null &&
-          typeof value === 'object' &&
-          Object.values(value).every((item) => Array.isArray(item)),
-        ...customTypes,
+        array: z.array(z.any()),
+        int: z.number().int(),
+        float: z
+          .number()
+          .refine((v) => !Number.isInteger(v), { message: 'Debe ser float' }),
+        string: z.string(),
+        boolean: z.boolean(),
+        date: z.date(),
+        object: z.object({}).passthrough(),
+        strings_array: z.array(z.string()),
+        object_of_strings: z.record(z.string()),
+        object_of_strings_array: z.record(z.array(z.string())),
+        array_of_objects: z.array(z.object({}).passthrough()),
+        object_of_arrays: z.record(z.array(z.any())),
       };
 
       this.validationValues = this.config.getValidationValues();
@@ -56,120 +38,121 @@ export default class Validator {
     return Validator.instance;
   }
 
-  validateUsername(value) {
-    if (
-      value &&
-      value.length < this.validationValues.user.username.min &&
-      value.length > 0
-    ) {
-      return `El nombre de usuario debe tener al menos ${this.validationValues.user.username.min} caracteres.`;
-    } else if (
-      value &&
-      value.length > this.validationValues.user.username.max
-    ) {
-      return `El nombre de usuario no puede tener más de ${this.validationValues.user.username.max} caracteres.`;
+  async validateUsername(value) {
+    const { min, max } = this.validationValues.user.username;
+
+    // Validación con Zod
+    const usernameSchema = z
+      .string()
+      .min(min, `El nombre de usuario debe tener al menos ${min} caracteres.`)
+      .max(
+        max,
+        `El nombre de usuario no puede tener más de ${max} caracteres.`
+      );
+
+    try {
+      usernameSchema.parse(value);
+    } catch (err) {
+      return err.errors[0].message; // Retorna primer error de Zod
     }
 
-    let userExists = false;
-
-    const usernameExistsQuery =
-      'SELECT COUNT(*) FROM public."user" WHERE username = $1;';
+    // Validación de existencia en DB
     if (this.dbms && typeof this.dbms.query === 'function') {
-      this.dbms
-        .query(usernameExistsQuery, [value])
-        .then((result) => {
-          userExists = Number(result?.rows?.[0]?.count || 0) > 0;
-        })
-        .catch((err) => {
-          console.error('Error checking username existence:', err);
-        });
-    }
-
-    if (userExists) {
-      return 'El nombre de usuario ya está en uso.';
+      try {
+        const result = await this.dbms.query(
+          'SELECT COUNT(*) FROM public."user" WHERE username = $1;',
+          [value]
+        );
+        const userExists = Number(result?.rows?.[0]?.count || 0) > 0;
+        if (userExists) {
+          return 'El nombre de usuario ya está en uso.';
+        }
+      } catch (err) {
+        console.error('Error checking username existence:', err);
+        return 'Error al validar el nombre de usuario.';
+      }
     }
 
     return '';
   }
 
   validateEmail(email) {
-    // Chequear que el email tenga un formato válido
+    const { max } = this.validationValues.user.email;
 
-    if (email && email.length > this.validationValues.user.email.max) {
-      return `El email no puede tener más de ${this.validationValues.user.email.max} caracteres`;
+    const emailSchema = z
+      .string()
+      .max(max, `El email no puede tener más de ${max} caracteres`)
+      .refine(
+        (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+        'El email no es válido'
+      );
+
+    try {
+      emailSchema.parse(email);
+    } catch (err) {
+      return err.errors[0].message;
     }
 
-    const emailRegex = new RegExp(
-      '[a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*@[a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[.][a-zA-Z]{2,5}'
-    );
-
-    if (email && email.length > 0 && !emailRegex.test(email)) {
-      return 'El email no es válido';
-    }
-
+    // Validación en DB
     let emailInUse = false;
-
     if (this.dbms && typeof this.dbms.query === 'function') {
       this.dbms
         .query('SELECT COUNT(*) FROM public."user" WHERE email = $1;', [email])
         .then((result) => {
-          if (Number(result?.rows?.[0]?.count || 0) > 0) {
-            emailInUse = true;
-          }
+          if (Number(result?.rows?.[0]?.count || 0) > 0) emailInUse = true;
         })
-        .catch((err) => {
-          console.error('Error checking email existencia:', err);
-        });
+        .catch((err) => console.error('Error checking email existence:', err));
     }
 
-    if (emailInUse) {
-      return 'El email ya está en uso.';
-    }
+    if (emailInUse) return 'El email ya está en uso.';
 
     return '';
   }
 
   validatePassword(text) {
-    // Chequear que la contraseña tenga al menos 8 caracteres
-    // Chequear que la contraseña tenga al menos una mayúscula, una minúscula, un número y un carácter especial
+    const { min, max } = this.validationValues.user.password;
 
-    if (text && text.length > this.validationValues.user.password.max) {
-      return `La contraseña no puede tener más de ${this.validationValues.user.password.max} caracteres`;
+    const passwordSchema = z
+      .string()
+      .min(min, `La contraseña debe tener al menos ${min} caracteres`)
+      .max(max, `La contraseña no puede tener más de ${max} caracteres`)
+      .refine(
+        (val) => /[A-Z]/.test(val),
+        'La contraseña debe contener al menos una letra mayúscula'
+      )
+      .refine(
+        (val) => /[a-z]/.test(val),
+        'La contraseña debe contener al menos una letra minúscula'
+      )
+      .refine(
+        (val) => /[0-9]/.test(val),
+        'La contraseña debe contener al menos un número'
+      )
+      .refine(
+        (val) =>
+          /[-:+_º·$/[\]}{|~€|@#~€¬`«»%()?¿¡;.'"!@#\$//%\^,&\*]/.test(val),
+        'La contraseña debe contener al menos un símbolo'
+      );
+
+    try {
+      passwordSchema.parse(text);
+      return '';
+    } catch (err) {
+      return err.errors[0].message;
     }
-
-    let errorText = '';
-    const length = text.length > this.validationValues.user.password.min;
-    const numberRegex = new RegExp('[0-9]');
-    const uppercaseRegex = new RegExp('[A-Z]');
-    const lowercaseRegex = new RegExp('[a-z]');
-    const symbolRegex =
-      /[-:+_º·$/[\]}{|~€|@#~€¬`«»%()?¿¡;.'"!@#\\$//%\\^,&\\*]/;
-
-    if (text.length > 0) {
-      if (!length) {
-        errorText = 'La contraseña debe tener al menos 8 caracteres';
-      } else if (!uppercaseRegex.test(text)) {
-        errorText = 'La contraseña debe contener al menos una letra mayúscula';
-      } else if (!lowercaseRegex.test(text)) {
-        errorText = 'La contraseña debe contener al menos una letra minúscula';
-      } else if (!numberRegex.test(text)) {
-        errorText = 'La contraseña debe contener al menos un número';
-      } else if (!symbolRegex.test(text)) {
-        errorText = 'La contraseña debe contener al menos un símbolo';
-      } else {
-        errorText = '';
-      }
-    }
-    return errorText;
   }
 
   validateConfirmPassword(pass, confirmPass) {
-    // Chequear que la contraseña de confirmación sea igual a la contraseña
+    const confirmSchema = z
+      .string()
+      .refine((val) => val === pass, 'Las contraseñas no coinciden');
 
-    if (pass !== confirmPass) {
-      return 'Las contraseñas no coinciden';
+    try {
+      confirmSchema.parse(confirmPass);
+      return '';
+    } catch (err) {
+      return err.errors[0].message;
     }
-    return '';
   }
 
   getValidationValues(entity, field) {
@@ -179,67 +162,100 @@ export default class Validator {
   validateName(value, entity) {
     const { min, max } = this.getValidationValues(entity, 'name');
 
-    if (value && value.length < min && value.length > 0) {
-      return `El nombre de ${entity} debe tener al menos ${min} caracteres.`;
-    } else if (value && value.length > max) {
-      return `El nombre de ${entity} no puede tener más de ${max} caracteres.`;
+    const nameSchema = z
+      .string()
+      .min(min, `El nombre de ${entity} debe tener al menos ${min} caracteres.`)
+      .max(
+        max,
+        `El nombre de ${entity} no puede tener más de ${max} caracteres.`
+      );
+
+    try {
+      nameSchema.parse(value);
+      return '';
+    } catch (err) {
+      return err.errors[0].message;
     }
-    return '';
   }
 
   validateDescription(value, entity) {
     const { max } = this.getValidationValues(entity, 'description');
-    if (value && value.length > max) {
-      return `La descripción de ${entity} no puede tener más de ${max} caracteres.`;
+
+    const descSchema = z
+      .string()
+      .max(
+        max,
+        `La descripción de ${entity} no puede tener más de ${max} caracteres.`
+      )
+      .optional(); // en caso de que el valor sea undefined o vacío
+
+    try {
+      descSchema.parse(value || ''); // si es undefined, parsea ''
+      return '';
+    } catch (err) {
+      return err.errors[0].message;
     }
-    return '';
   }
 
   validateStructuredData(data, structure) {
-    // Iterate over structure recursively until find a string and validate it
-    /**If the root property is found, instead of looking for a property named root, validate the entire object since root is found. */
     const errors = [];
 
-    if (structure.hasOwnProperty('root')) {
-      const isValid = this.validateField(data, structure.root);
-      if (!isValid) {
-        const types = structure.root.split('_of_');
-        const structureType = types ? types[0] : 'estructura';
-        const expectedType = types ? types[1] : '(no especificado)';
-        errors.push(
-          `Error, todos los campos del ${structureType} deben ser de tipo ${expectedType}`
-        );
+    const buildSchema = (struct) => {
+      if (typeof struct === 'string') {
+        switch (struct) {
+          case 'string':
+            return z.string();
+          case 'number':
+          case 'int':
+            return z.number();
+          case 'boolean':
+            return z.boolean();
+          case 'array':
+            return z.array(z.any());
+          case 'object':
+            return z.object({});
+          case 'date':
+            return z.date();
+          default:
+            return z.custom((val) => this.validateField(val, struct) === true);
+        }
+      } else if (struct.root) {
+        return buildSchema(struct.root);
+      } else if (typeof struct === 'object') {
+        const shape = {};
+        for (const key in struct) {
+          shape[key] = buildSchema(struct[key]);
+        }
+        return z.object(shape);
       }
-      return errors;
+
+      return z.any();
+    };
+
+    const schema = buildSchema(structure);
+
+    try {
+      schema.parse(data);
+    } catch (err) {
+      if (err.errors) {
+        err.errors.forEach((e) => errors.push(e.message));
+      } else {
+        errors.push('Error desconocido en estructura de datos');
+      }
     }
 
-    const validate = (data, structure) => {
-      for (const key in structure) {
-        if (structure.hasOwnProperty(key)) {
-          const type = structure[key];
-          const value = data[key];
-
-          if (typeof type === 'string') {
-            const isValid = this.validateField(value, type);
-            if (!isValid) {
-              errors.push(`Error, ${key} debe ser de tipo ${type}`);
-            }
-          } else if (typeof type === 'object') {
-            // If the type is an object, recurse into it
-            validate(value, type);
-          }
-        }
-      }
-    };
-    validate(data, structure);
     return errors;
   }
 
   validateField(value, type) {
-    const typeValidator = this.types[type];
-    if (typeValidator) {
-      return typeValidator(value);
+    const schema = this.types[type];
+    if (!schema) return false;
+
+    try {
+      schema.parse(value);
+      return true;
+    } catch (err) {
+      return false;
     }
-    return '';
   }
 }
