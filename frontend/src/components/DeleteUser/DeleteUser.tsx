@@ -18,8 +18,8 @@ import { useState } from 'react';
 import React from 'react';
 import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect } from 'react';
-import { SERVER_URL } from '../../../config';
+// import { useEffect } from 'react';
+// import { SERVER_URL } from '../../../config';
 
 type UserItem = { id: number; username: string; profile: string };
 

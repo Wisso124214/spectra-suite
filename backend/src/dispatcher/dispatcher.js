@@ -26,6 +26,7 @@ export default class Dispatcher {
   createToProcess() {
     this.app.post('/toProcess', async (req, res) => {
       try {
+        //Cambiar la instancia para arriba para hacer solo una instancia del objeto
         const { getSession } = new SessionManager();
 
         // Obtener sesión
@@ -72,6 +73,8 @@ export default class Dispatcher {
         }
 
         // Determinar profile desde la sesión activa
+        // Nombrar las trasacciones
+
         const profileFromSession = userData.activeProfile;
 
         const checkData = {
