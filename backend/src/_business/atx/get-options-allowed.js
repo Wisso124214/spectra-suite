@@ -1,6 +1,6 @@
-import DBMS from '#dbms/dbms.js';
-import Utils from '#utils/utils.js';
-import Config from '#config/config.js';
+import DBMS from '@dbms/dbms.js';
+import Utils from '@utils/utils.js';
+import Config from '@config/config.js';
 
 // Devuelve un arreglo con los nombres de las opciones permitidas para un perfil dado
 export default async function getOptionsAllowed(data) {

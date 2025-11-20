@@ -1,4 +1,4 @@
-import executeMethod from '#atx/execute-method.js';
+import executeMethod from '@atx/execute-method.js';
 
 export default async function _ensureJoin(client, table, fields) {
   const _q = await executeMethod({ className: 'helpers', method: '_q' });

@@ -1,6 +1,6 @@
-import Utils from '#utils/utils.js';
-import Config from '#config/config.js';
-import getMethod from '#atx/get-method.js';
+import Utils from '@utils/utils.js';
+import Config from '@config/config.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function setUserProfile(data) {
   const utils = new Utils();

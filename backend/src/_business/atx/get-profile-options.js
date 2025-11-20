@@ -1,5 +1,5 @@
-import Utils from '#utils/utils.js';
-import Config from '#config/config.js';
+import Utils from '@utils/utils.js';
+import Config from '@config/config.js';
 
 export default async function getProfileOptions(data) {
   const utils = new Utils();

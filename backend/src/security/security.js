@@ -1,7 +1,7 @@
-import DBMS from '#dbms/dbms.js';
-import Utils from '#utils/utils.js';
-import Config from '#config/config.js';
-import executeMethod from '#atx/execute-method.js';
+import DBMS from '@dbms/dbms.js';
+import Utils from '@utils/utils.js';
+import Config from '@config/config.js';
+import executeMethod from '@atx/execute-method.js';
 
 export default class Security {
   constructor() {

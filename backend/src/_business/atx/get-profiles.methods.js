@@ -1,4 +1,4 @@
-import DBMS from '#dbms/dbms.js';
+import DBMS from '@dbms/dbms.js';
 
 export default async function getProfilesMethods() {
   try {
@@ -8,8 +8,8 @@ export default async function getProfilesMethods() {
     });
     return res?.rows || [];
   } catch (error) {
-    const Utils = (await import('#utils/utils.js')).default;
-    const Config = (await import('#config/config.js')).default;
+    const Utils = (await import('@utils/utils.js')).default;
+    const Config = (await import('@config/config.js')).default;
     const utils = new Utils();
     const config = new Config();
     const ERROR_CODES = config.ERROR_CODES;

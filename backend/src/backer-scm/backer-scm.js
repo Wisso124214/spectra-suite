@@ -1,5 +1,5 @@
-import Utils from '#utils/utils.js';
-import DBMS from '#dbms/dbms.js';
+import Utils from '@utils/utils.js';
+import DBMS from '@dbms/dbms.js';
 
 export default class BackerSCM {
   constructor() {

@@ -1,4 +1,4 @@
-import Debugger from '#debugger/debugger.js';
+import Debugger from '@debugger/debugger.js';
 
 export default class SessionManager {
   constructor() {

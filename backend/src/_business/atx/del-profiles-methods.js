@@ -1,4 +1,4 @@
-import getMethod from '#atx/get-method.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function delProfilesMethods(data) {
   const _forEachJsonMethod = await getMethod({

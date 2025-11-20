@@ -1,9 +1,9 @@
-import { pool } from '#config/secret-config.js';
-import Config from '#config/config.js';
-import Utils from '#utils/utils.js';
-import Formatter from '#formatter/formatter.js';
-import parseMOP from '#atx/parse-mop.js';
-import Debugger from '#debugger/debugger.js';
+import { pool } from '@config/secret-config.js';
+import Config from '@config/config.js';
+import Utils from '@utils/utils.js';
+import Formatter from '@formatter/formatter.js';
+import parseMOP from '@atx/parse-mop.js';
+import Debugger from '@debugger/debugger.js';
 
 export default class DBMS {
   constructor(validatorInstance = null) {

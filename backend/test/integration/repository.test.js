@@ -1,8 +1,8 @@
 import { GenericContainer } from 'testcontainers';
 import fs from 'fs';
 import path from 'path';
-import Config from '#config/config.js';
-import Repository from '#repository/repository.js';
+import Config from '@config/config.js';
+import Repository from '@repository/repository.js';
 
 jest.setTimeout(60000);
 

@@ -1,5 +1,5 @@
-import DBMS from '#dbms/dbms.js';
-import getMethod from '#atx/get-method.js';
+import DBMS from '@dbms/dbms.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function delSubsystemClassMethod(data) {
   const _withTransaction = await getMethod({
@@ -13,8 +13,8 @@ export default async function delSubsystemClassMethod(data) {
 
   const { subsystem, className, method } = data;
   if (!subsystem || !className || !method) {
-    const Utils = (await import('#utils/utils.js')).default;
-    const Config = (await import('#config/config.js')).default;
+    const Utils = (await import('@utils/utils.js')).default;
+    const Config = (await import('@config/config.js')).default;
     const utils = new Utils();
     const config = new Config();
     const ERROR_CODES = config.ERROR_CODES;

@@ -1,4 +1,4 @@
-import getMethod from '#atx/get-method.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function delMenusOptionsProfiles(data) {
   const delMenuOptionsProfile = await getMethod({

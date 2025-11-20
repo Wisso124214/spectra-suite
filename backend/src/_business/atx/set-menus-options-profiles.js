@@ -1,4 +1,4 @@
-import getMethod from '#atx/get-method.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function setMenusOptionsProfiles(data) {
   const _ensureEntityByUniqueField = await getMethod({
@@ -27,8 +27,8 @@ export default async function setMenusOptionsProfiles(data) {
   });
 
   if (!data || typeof data !== 'object') {
-    const Utils = (await import('#utils/utils.js')).default;
-    const Config = (await import('#config/config.js')).default;
+    const Utils = (await import('@utils/utils.js')).default;
+    const Config = (await import('@config/config.js')).default;
     const utils = new Utils();
     const config = new Config();
     const ERROR_CODES = config.ERROR_CODES;

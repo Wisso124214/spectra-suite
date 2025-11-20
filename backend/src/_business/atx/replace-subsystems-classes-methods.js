@@ -1,4 +1,4 @@
-import getMethod from '#business/atx/get-method.js';
+import getMethod from '@business/atx/get-method.js';
 
 export default async function replaceSubsystemsClassesMethods(data) {
   const replaceSubsystemClassMethod = await getMethod({

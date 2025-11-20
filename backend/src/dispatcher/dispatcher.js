@@ -1,8 +1,8 @@
-import Session from '#session/session.js';
-import SessionManager from '#session/sessionManager.js';
-import Security from '#security/security.js';
-import Config from '#config/config.js';
-import Debugger from '#debugger/debugger.js';
+import Session from '@/session.js';
+import SessionManager from '@/sessionManager.js';
+import Security from '@security/security.js';
+import Config from '@config/config.js';
+import Debugger from '@debugger/debugger.js';
 
 export default class Dispatcher {
   constructor(app) {

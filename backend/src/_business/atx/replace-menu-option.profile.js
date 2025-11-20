@@ -1,4 +1,4 @@
-import getMethod from '#atx/get-method.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function replaceMenuOptionProfile(data) {
   const _withTransaction = await getMethod({
@@ -16,8 +16,8 @@ export default async function replaceMenuOptionProfile(data) {
 
   const { menu, option, profile } = data;
   if (!menu || !option || !profile) {
-    const Utils = (await import('#utils/utils.js')).default;
-    const Config = (await import('#config/config.js')).default;
+    const Utils = (await import('@utils/utils.js')).default;
+    const Config = (await import('@config/config.js')).default;
     const utils = new Utils();
     const config = new Config();
     const ERROR_CODES = config.ERROR_CODES;

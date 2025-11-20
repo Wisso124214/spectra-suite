@@ -1,4 +1,4 @@
-import getMethod from '#atx/get-method.js';
+import getMethod from '@atx/get-method.js';
 
 export default async function delProfilesOptions(data) {
   const delProfileOption = await getMethod({
