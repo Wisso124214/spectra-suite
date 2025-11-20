@@ -1,4 +1,4 @@
-import getMethod from '@atx/get-method.js';
+import getMethod from "./get-method.js";
 
 export default async function delSubsystemsClassesMethods(data) {
   const delSubsystemClassMethod = await getMethod({

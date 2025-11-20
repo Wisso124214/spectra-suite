@@ -1,4 +1,4 @@
-import getMethod from '@atx/get-method.js';
+import getMethod from "./get-method.js";
 
 // Bulk assign profiles to multiple users in one pass
 export default async function setUsersProfiles(data) {

@@ -1,7 +1,7 @@
-import Utils from '@utils/utils.js';
-import Config from '@config/config.js';
-import DBMS from '@dbms/dbms.js';
-import getMethod from '@atx/get-method.js';
+import Utils from "../../utils/utils.js";
+import Config from "../../../config/config.js";
+import DBMS from "../../dbms/dbms.js";
+import getMethod from "./get-method.js";
 
 export default async function delProfileMethod(data) {
   const utils = new Utils();

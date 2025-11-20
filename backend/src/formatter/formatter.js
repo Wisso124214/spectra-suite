@@ -1,6 +1,6 @@
-import Validator from '@validator/validator.js';
-import Utils from '@utils/utils.js';
-import Config from '@config/config.js';
+import Validator from "../validator/validator.js";
+import Utils from "../utils/utils.js";
+import Config from "../../config/config.js";
 
 export default class Formatter {
   constructor() {

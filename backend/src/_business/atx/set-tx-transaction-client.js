@@ -1,6 +1,6 @@
-import Utils from '@utils/utils.js';
-import Config from '@config/config.js';
-import getMethod from '@atx/get-method.js';
+import Utils from "../../utils/utils.js";
+import Config from "../../../config/config.js";
+import getMethod from "./get-method.js";
 
 // Internal variant of setTxTransaction that uses an existing client (no new transaction)
 export default async function setTxTransactionWithClient(client, data) {

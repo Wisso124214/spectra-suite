@@ -1,6 +1,6 @@
-import DBMS from '@dbms/dbms.js';
-import Utils from '@utils/utils.js';
-import Config from '@config/config.js';
+import DBMS from "../../dbms/dbms.js";
+import Utils from "../../utils/utils.js";
+import Config from "../../../config/config.js";
 
 export default async function getUserProfiles(data) {
   const dbms = new DBMS();

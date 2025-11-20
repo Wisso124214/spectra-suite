@@ -1,25 +1,3 @@
 {
-  "presets": [["@babel/preset-env", { "targets": { "node": "16" } }]],
-  "plugins": [
-    [
-      "module-resolver",
-      {
-        "root": ["./"],
-        "alias": {
-          "@": "./src",
-          "@config": "./config",
-          "@services": "./src/services",
-          "@utils": "./src/utils",
-          "@repository": "./src/repository",
-          "@business": "./src/_business",
-          "@ftx": "./src/_business/ftx",
-          "@security": "./src/security",
-          "@debugger": "./src/debugger",
-          "@dbms": "./src/dbms",
-          "@formatter": "./src/formatter",
-          "@atx": "./src/_business/atx"
-        }
-      }
-    ]
-  ]
+  "presets": [["@babel/preset-env", { "targets": { "node": "16" } }]]
 }

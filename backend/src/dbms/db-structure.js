@@ -1,4 +1,4 @@
-import Config from '@config/config.js';
+import Config from "../../config/config.js";
 const PROFILES = await new Config().getProfiles();
 
 const { SUPER_ADMIN, SECURITY_ADMIN, EVENT_ADMIN, PARTICIPANT, DB_ADMIN } =

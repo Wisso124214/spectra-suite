@@ -1,6 +1,6 @@
-import Utils from '@utils/utils.js';
-import Config from '@config/config.js';
-import DBMS from '@dbms/dbms.js';
+import Utils from "../../utils/utils.js";
+import Config from "../../../config/config.js";
+import DBMS from "../../dbms/dbms.js";
 
 export default async function getMenuOptionsProfile(data) {
   const utils = new Utils();

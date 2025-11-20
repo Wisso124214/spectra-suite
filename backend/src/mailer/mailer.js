@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { resendApiKey } from '@config/secret-config.js';
+import { resendApiKey } from "../../config/secret-config.js";
 const resend = new Resend(resendApiKey);
 
 export default class Mailer {

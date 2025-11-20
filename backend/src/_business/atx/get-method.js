@@ -1,6 +1,6 @@
-import Utils from '@utils/utils.js';
-import Config from '@config/config.js';
-import Business from '@business/business.js';
+import Utils from "../../utils/utils.js";
+import Config from "../../../config/config.js";
+import Business from "../business.js";
 
 export default async function getMethod({ subsystem, className, method }) {
   const utils = new Utils();

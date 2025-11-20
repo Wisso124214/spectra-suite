@@ -1,4 +1,4 @@
-import Config from '@config/config.js';
+import Config from "../../../config/config.js";
 
 export default async function handleGetSetData({
   method,

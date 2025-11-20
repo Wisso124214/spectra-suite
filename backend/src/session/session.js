@@ -1,12 +1,12 @@
 import { createRoutes } from './sessionRoutes.js';
 import bcrypt from 'bcrypt';
-import Validator from '@validator/validator.js';
-import DBMS from '@dbms/dbms.js';
-import Config from '@config/config.js';
-import Tokenizer from '@tokenizer/tokenizer.js';
-import Mailer from '@mailer/mailer.js';
-import Utils from '@utils/utils.js';
-import Debugger from '@debugger/debugger.js';
+import Validator from "../validator/validator.js";
+import DBMS from "../dbms/dbms.js";
+import Config from "../../config/config.js";
+import Tokenizer from "../tokenizer/tokenizer.js";
+import Mailer from "../mailer/mailer.js";
+import Utils from "../utils/utils.js";
+import Debugger from "../debugger/debugger.js";
 
 export default class Session {
   constructor() {

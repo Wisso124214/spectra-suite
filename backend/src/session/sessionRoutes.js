@@ -1,7 +1,7 @@
-import Session from '@/session.js';
-import SessionManager from './sessionManager.js';
-import Config from '@config/config.js';
-import DBMS from '@dbms/dbms.js';
+import Session from '../session/session.js';
+import SessionManager from '../session/sessionManager.js';
+import Config from '../../config/config.js';
+import DBMS from '../dbms/dbms.js';
 
 export const createRoutes = async (app) => {
   const session = new Session();

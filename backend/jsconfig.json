@@ -8,21 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@config/*": ["config/*"],
-      "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"],
-      "@repository/*": ["src/repository/*"],
-      "@business/*": ["src/_business/*"],
-      "@ftx/*": ["src/_business/ftx/*"],
-      "@security/*": ["src/security/*"],
-      "@debugger/*": ["src/debugger/*"],
-      "@dbms/*": ["src/dbms/*"],
-      "@formatter/*": ["src/formatter/*"],
-      "@atx/*": ["src/_business/atx/*"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "src",

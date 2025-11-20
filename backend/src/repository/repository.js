@@ -1,5 +1,5 @@
-import Utils from '@utils/utils.js';
-import DBMS from '@dbms/dbms.js';
+import Utils from "../utils/utils.js";
+import DBMS from "../dbms/dbms.js";
 
 /**
  * @deprecated Use the atx architecture instead.

@@ -1,12 +1,12 @@
 import 'module-alias/register.js';
-import Config from '@config/config.js';
-import app from '@/middleware.js';
-import DBMS from '@dbms/dbms.js';
-import Session from '@/session/session.js';
-import Security from '@/security/security.js';
-import Validator from '@validator/validator.js';
-import Dispatcher from '@/dispatcher/dispatcher.js';
-import Business from '@business/business.js';
+import Config from "./config/config.js";
+import app from "./src/middleware.js";
+import DBMS from "./src/dbms/dbms.js";
+import Session from "./src/session/session.js";
+import Security from "./src/security/security.js";
+import Validator from "./src/validator/validator.js";
+import Dispatcher from "./src/dispatcher/dispatcher.js";
+import Business from "./src/_business/business.js";
 
 const { PORT, SERVER_URL } = new Config();
 
