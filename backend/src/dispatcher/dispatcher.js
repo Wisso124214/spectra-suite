@@ -3,122 +3,229 @@ import SessionManager from '../session/sessionManager.js';
 import Security from '../security/security.js';
 import Config from '../../config/config.js';
 import Debugger from '../debugger/debugger.js';
+import DBMS from '../dbms/dbms.js';
+import Validator from '../validator/validator.js';
+import Business from '../_business/business.js';
 
 export default class Dispatcher {
   constructor(app) {
+    if (Dispatcher.instance) return Dispatcher.instance;
+
     this.app = app;
     this.session = new Session();
+    this.sessionMngr = new SessionManager();
     this.security = new Security();
     this.config = new Config();
     this.ERROR_CODES = this.config.ERROR_CODES;
+    this.dbms = new DBMS(null);
+    this.validator = new Validator(this.dbms);
+    this.dbms.validator = this.validator;
     this.dbgr = new Debugger();
+    this.business = new Business();
 
-    if (!Dispatcher.instance) {
-      Dispatcher.instance = this;
-    }
-    return Dispatcher.instance;
+    Dispatcher.instance = this;
+    return this;
   }
 
-  init() {
+  async init() {
+    // Inicializa DBMS y Dispatcher
+    await this.dbms.init();
+    this.business.init();
+    this.createSessionRoutes();
     this.createToProcess();
+    this.createDefaultRoute();
+  }
+
+  createSessionRoutes() {
+    const { app, session, sessionMngr, ERROR_CODES, dbms } = this;
+    const { existSession, createAndUpdateSession, destroySession, getSession } =
+      sessionMngr;
+
+    // -------------------- USERNAMES --------------------
+    app.get('/usernames', async (req, res) => {
+      try {
+        const result = await dbms.executeNamedQuery({ nameQuery: 'getUsers' });
+        const usernames = (result?.rows || []).map((u) => u.username);
+        res.json(usernames);
+      } catch (err) {
+        res
+          .status(err?.errorCode || 500)
+          .json({ message: err?.message || 'Error obteniendo usuarios' });
+      }
+    });
+
+    // -------------------- LOGIN --------------------
+    app.post('/login', async (req, res) => {
+      if (existSession(req)) {
+        return res.send({
+          errorCode: ERROR_CODES.BAD_REQUEST,
+          message: `Ya has iniciado sesión. Cierra la sesión para continuar.`,
+          redirect: '/home',
+        });
+      }
+      const userData = req.body || JSON.parse(req.headers.data || '{}');
+      const ret = await session.login({ userData });
+
+      if (ret?.userData) {
+        const sanitized = { ...ret.userData };
+        delete sanitized.password;
+        createAndUpdateSession(req, sanitized);
+        return res.send(ret);
+      } else if (ret?.profiles) return res.send(ret);
+      else if (ret?.errorCode) return res.status(ret.errorCode).send(ret);
+      else
+        return res
+          .status(ERROR_CODES.INTERNAL_SERVER_ERROR)
+          .send({ message: 'Error al iniciar sesión' });
+    });
+
+    // -------------------- REGISTER --------------------
+    app.post('/register', async (req, res) => {
+      if (existSession(req)) {
+        return res.send({
+          message: `Ya has iniciado sesión. Cierra la sesión para continuar.`,
+          redirect: '/home',
+        });
+      }
+      const userData = req.body || JSON.parse(req.headers.data || '{}');
+      const isParticipant =
+        getSession(req)?.activeProfile === session.PROFILES?.PARTICIPANT?.name;
+
+      const registerResult = await session.register({
+        userData,
+        isParticipant,
+      });
+      if (registerResult.errorCode)
+        return res.status(registerResult.errorCode).send(registerResult);
+
+      // Auto login
+      const loginResult = await session.login({
+        userData: { username: userData.username, password: userData.password },
+      });
+      if (loginResult.errorCode)
+        return res.status(loginResult.errorCode).send(loginResult);
+
+      if (loginResult.userData) {
+        const sanitized = { ...loginResult.userData };
+        delete sanitized.password;
+        createAndUpdateSession(req, sanitized);
+      }
+
+      return res.send({ ...registerResult, ...loginResult });
+    });
+
+    // -------------------- LOGOUT --------------------
+    app.get('/logout', async (req, res) => {
+      if (!existSession(req))
+        return res.send({
+          message: 'No has iniciado sesión.',
+          redirect: '/login',
+        });
+      const result = destroySession(req);
+      return res.send(result);
+    });
+
+    // -------------------- CHANGE PROFILE --------------------
+    app.post('/changeProfile', async (req, res) => {
+      if (!existSession(req))
+        return res.status(ERROR_CODES.UNAUTHORIZED).send({
+          errorCode: ERROR_CODES.UNAUTHORIZED,
+          message: 'No has iniciado sesión.',
+        });
+      const userData = req.body || JSON.parse(req.headers.data || '{}');
+      const result = await session.changeActiveProfile({ userData });
+      if (result.errorCode) return res.status(result.errorCode).send(result);
+      createAndUpdateSession(req, result.userData);
+      return res.send({ ok: true, result, userData: result.userData });
+    });
+
+    // -------------------- FORGOT PASSWORD --------------------
+    app.post('/forgotPassword', async (req, res) => {
+      const userData = req.body || JSON.parse(req.headers.data || '{}');
+      const origin = req.headers.origin;
+      const ret = await session.forgotPassword({ userData, origin });
+      if (ret.errorCode) return res.status(ret.errorCode).send(ret);
+      return res.send(ret);
+    });
+
+    // -------------------- RESET PASSWORD --------------------
+    app.post('/resetPassword', async (req, res) => {
+      const userData = req.body || JSON.parse(req.headers.data || '{}');
+      const ret = await session.resetPassword({ userData });
+      if (ret.errorCode) return res.status(ret.errorCode).send(ret);
+      return res.send(ret);
+    });
   }
 
   createToProcess() {
-    this.app.post('/toProcess', async (req, res) => {
-      try {
-        //Cambiar la instancia para arriba para hacer solo una instancia del objeto
-        const { getSession } = new SessionManager();
+    const { app, sessionMngr, security, ERROR_CODES } = this;
+    const { getSession } = sessionMngr;
 
-        // Obtener sesión
+    app.post('/toProcess', async (req, res) => {
+      try {
         const userData = getSession(req);
-        if (!userData) {
-          return res.status(this.ERROR_CODES.UNAUTHORIZED).send({
-            errorCode: this.ERROR_CODES.UNAUTHORIZED,
+        if (!userData)
+          return res.status(ERROR_CODES.UNAUTHORIZED).send({
+            errorCode: ERROR_CODES.UNAUTHORIZED,
             message: 'Usuario no autenticado',
           });
-        }
 
-        // Payload esperado: puede venir en body o en header.data (compatibilidad)
         const payload = req.body || JSON.parse(req.headers.data || '{}');
+        const { tx, params } = payload;
 
-        // Validaciones básicas de entrada
-        const { tx, params } = payload || {};
-
-        let transactionData = null;
-
-        console.log(
-          'Received /toProcess request with tx:',
-          tx,
-          'and params:',
-          params
-        );
+        let transactionData;
         try {
-          transactionData = await this.security.getTxTransaction({ tx });
+          transactionData = await security.getTxTransaction({ tx });
         } catch (err) {
-          return res.status(this.ERROR_CODES.NOT_FOUND).send({
-            errorCode: this.ERROR_CODES.NOT_FOUND,
-            message: 'Error. El código de transacción no es válido.',
+          return res.status(ERROR_CODES.NOT_FOUND).send({
+            errorCode: ERROR_CODES.NOT_FOUND,
+            message: 'Código de transacción inválido',
             userData,
           });
         }
 
         const { subsystem, className, method } = transactionData;
-
-        if (!className || !method) {
-          return res.status(this.ERROR_CODES.BAD_REQUEST).send({
-            errorCode: this.ERROR_CODES.BAD_REQUEST,
-            message: 'Se requieren className y method en la petición',
+        if (!className || !method)
+          return res.status(ERROR_CODES.BAD_REQUEST).send({
+            errorCode: ERROR_CODES.BAD_REQUEST,
+            message: 'Se requieren className y method',
             userData,
           });
-        }
-
-        // Determinar profile desde la sesión activa
-        // Nombrar las trasacciones
 
         const profileFromSession = userData.activeProfile;
-
-        const checkData = {
-          subsystem: subsystem || null,
-          className,
-          method,
-          profile: profileFromSession || null,
-        };
-
-        console.log('Check data for permission:', checkData);
-
-        if (!checkData.profile) {
-          return res.status(this.ERROR_CODES.BAD_REQUEST).send({
-            errorCode: this.ERROR_CODES.BAD_REQUEST,
-            message:
-              'Su sesión ha sido finalizada. Por favor inicie sesión nuevamente.',
+        if (!profileFromSession)
+          return res.status(ERROR_CODES.BAD_REQUEST).send({
+            errorCode: ERROR_CODES.BAD_REQUEST,
+            message: 'Sesión expirada',
             userData,
           });
-        }
-        const perm = await this.security.checkPermissionMethod(checkData);
 
-        if (perm && !perm.hasPermission) {
-          return res.status(this.ERROR_CODES.FORBIDDEN).send({
-            errorCode: this.ERROR_CODES.FORBIDDEN,
-            tx: tx,
-            message: 'No tiene permisos para ejecutar este método',
+        const perm = await security.checkPermissionMethod({
+          subsystem,
+          className,
+          method,
+          profile: profileFromSession,
+        });
+        if (perm && !perm.hasPermission)
+          return res.status(ERROR_CODES.FORBIDDEN).send({
+            errorCode: ERROR_CODES.FORBIDDEN,
+            tx,
+            message: 'Sin permisos',
             permission: perm.hasPermission,
             userData,
           });
-        }
 
-        let objectParams = {};
-        if (typeof params === 'string')
-          objectParams = JSON.parse(params || '{}');
-        else objectParams = params || {};
-        // Ejecutar el método solicitado
-        const execResult = await this.security.executeMethod({
+        const objectParams =
+          typeof params === 'string'
+            ? JSON.parse(params || '{}')
+            : params || {};
+        const execResult = await security.executeMethod({
           subsystem,
           className,
           method,
           params: objectParams,
         });
-
-        const newUserData = getSession(req); // refrescar datos de sesión por si hubo cambios
+        const newUserData = getSession(req);
 
         return res.send({
           ok: true,
@@ -126,31 +233,20 @@ export default class Dispatcher {
           userData: newUserData,
         });
       } catch (error) {
-        // Manejo genérico de errores
-        const code =
-          (this.security &&
-            this.security.ERROR_CODES &&
-            this.security.ERROR_CODES.INTERNAL_SERVER_ERROR) ||
-          500;
-        console.error('Error en /toProcess:', error?.message || error);
-        return res.status(code).send({
-          errorCode: code,
+        console.error('Error en /toProcess:', error);
+        return res.status(ERROR_CODES.INTERNAL_SERVER_ERROR).send({
+          errorCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
           message: 'Error procesando la petición',
           error: JSON.stringify(error),
         });
       }
     });
 
-    // catch-all POST route: match any path and redirect with 307 to preserve
-    // the original HTTP method and request body when forwarding to /toProcess
-    // Use a RegExp /.*/ to avoid path-to-regexp parsing issues with '*'
-    this.app.post(/.*/, (req, res) => {
-      // 307 Temporary Redirect preserves method (POST) and body
-      return res.redirect(307, '/toProcess');
-    });
+    // Catch-all POST → redirect 307
+    app.post(/.*/, (req, res) => res.redirect(307, '/toProcess'));
+  }
 
-    this.app.get('/', async (req, res) => {
-      res.send('API running');
-    });
+  createDefaultRoute() {
+    this.app.get('/', async (req, res) => res.send('API running'));
   }
 }
