@@ -9,27 +9,16 @@ import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { toastStyles, SERVER_URL } from '../../../config';
 import useAppContext from '@/hooks/useAppContext';
-import {
-  type BasicResponseToProcess,
-  type User,
-} from '../../contexts/AppContext';
-
-type ChangeProfileResponse = BasicResponseToProcess & {
-  userData?: User;
-  result: {
-    message?: string;
-    rows?: { profile_name: string }[];
-  };
-};
+import { type ChangeProfileResponse } from '../../contexts/AppContext';
 
 export default function ChangeProfile() {
   const {
     setUserData,
-    fetchToProcess,
     userData,
     setIsShowingPopup,
     isShowingPopup,
     setChildrenPopup,
+    fetchToProcess,
   } = useAppContext();
 
   const [selectedProfile, setSelectedProfile] = useState(
@@ -70,7 +59,9 @@ export default function ChangeProfile() {
       .then(async (data) => {
         if (data.ok) {
           const newUserData = { ...userData, ...data.userData };
-          newUserData.profile = newUserData.activeProfile;
+
+          if (newUserData?.activeProfile)
+            newUserData.profile = newUserData.activeProfile;
 
           setUserData(newUserData);
           toast.success(

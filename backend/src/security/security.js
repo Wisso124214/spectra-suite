@@ -188,9 +188,7 @@ export default class Security {
         });
       }
 
-      // Refrescar permisos en memoria
-      await this.loadPermissions();
-
+      //await this.loadPermissions();
       const key = `${id_subsystem}_${id_class}_${id_method}_${id_profile}`;
       return {
         ok: true,

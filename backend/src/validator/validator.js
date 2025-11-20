@@ -9,7 +9,8 @@ export default class Validator {
     }
 
     this.dbms = dbmsInstance;
-    const customTypes = new Config().getCustomTypes();
+    this.config = new Config();
+    const customTypes = this.config.getCustomTypes();
 
     if (!Validator.instance) {
       this.types = {
@@ -47,40 +48,7 @@ export default class Validator {
         ...customTypes,
       };
 
-      this.validationValues = {
-        user: {
-          username: { min: 6, max: 30 },
-          email: { max: 100 },
-          password: { min: 8, max: 80 },
-        },
-        profile: {
-          name: { min: 3, max: 30 },
-          description: { max: 300 },
-        },
-        subsystem: {
-          name: { min: 3, max: 50 },
-          description: { max: 300 },
-        },
-        class: {
-          name: { min: 3, max: 30 },
-          description: { max: 200 },
-        },
-        method: {
-          name: { min: 3, max: 30 },
-          description: { max: 200 },
-        },
-        menu: {
-          name: { min: 3, max: 50 },
-          description: { max: 200 },
-        },
-        option: {
-          name: { min: 3, max: 80 },
-          description: { max: 200 },
-        },
-        transaction: {
-          description: { max: 200 },
-        },
-      };
+      this.validationValues = this.config.getValidationValues();
 
       Validator.instance = this;
     }

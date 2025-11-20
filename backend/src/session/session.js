@@ -258,7 +258,8 @@ export default class Session {
     }
   };
 
-  forgotPassword = async ({ userData, origin }) => {
+  forgotPassword = async ({ userData, origin = '' }) => {
+    console.log('userData received in forgotPassword:', userData);
     const { email } = userData;
     if (!email) {
       return {

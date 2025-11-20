@@ -29,6 +29,7 @@ export default class Config {
 
       this.__filename = fileURLToPath(import.meta.url);
       this.__dirname = dirname(this.__filename);
+      // Carga perezosa: VALIDATIONS se inicializa en el primer getValidationValues()
       Config.instance = this;
     }
     return Config.instance;
@@ -121,5 +122,23 @@ export default class Config {
 
   getCustomTypes() {
     return this.customTypes;
+  }
+
+  // Cargar y exponer las reglas de validación desde config/validations.json
+  getValidationValues() {
+    try {
+      if (!this.VALIDATIONS) {
+        const validationsPath = path.resolve(
+          this.__dirname,
+          '../config/validations.json'
+        );
+        const raw = fs.readFileSync(validationsPath, 'utf8');
+        this.VALIDATIONS = JSON.parse(raw);
+      }
+      return this.VALIDATIONS;
+    } catch (err) {
+      console.error('Error cargando validations.json:', err);
+      return {};
+    }
   }
 }

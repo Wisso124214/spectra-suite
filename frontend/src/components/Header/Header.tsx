@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import useAppContext from '@/hooks/useAppContext';
-import { SERVER_URL } from '../../../config';
+import { toastStyles, SERVER_URL } from '../../../config';
+import toast from 'react-hot-toast';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -23,11 +24,17 @@ export default function Header() {
         }).then((res) => res);
         const data = await response.json();
         const newUserData = { ...userData, ...data?.userData };
-        newUserData.profile = newUserData?.activeProfile || null;
+        if (newUserData?.activeProfile)
+          newUserData.profile = newUserData?.activeProfile;
+
         setUserData(newUserData);
-        if (newUserData) {
+        if (Object.keys(newUserData).length > 0) {
           navigate('/home');
         } else {
+          toast.error(
+            'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            toastStyles
+          );
           navigate('/login');
         }
       } catch (error) {

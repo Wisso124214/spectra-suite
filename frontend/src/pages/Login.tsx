@@ -62,7 +62,8 @@ export default function Login() {
         .then(async (response) => {
           if (!response.errorCode) {
             const newUserData = { ...userData, ...response.userData };
-            newUserData.profile = newUserData.activeProfile;
+            if (newUserData?.activeProfile)
+              newUserData.profile = newUserData.activeProfile;
 
             setUserData(newUserData);
             setTimeout(() => {

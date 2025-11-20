@@ -16,17 +16,17 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, Logs, Menu } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
-import { Logs, Menu } from 'lucide-react';
 import { SubsystemSelect } from '../SubsystemSelect/SubsystemSelect';
 import { CommandAvatar } from '../CommandAvatar/CommandAvatar';
+import { CustomTooltip } from '../CustomTooltip/CustomTooltip';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export type MenuData = MenuItem[];
 
@@ -36,6 +36,7 @@ type MenuItem = {
   icon?: string; // clave de icono (p. ej. "Home" o "List")
   children?: MenuItem[];
   defaultOpen?: boolean;
+  component?: React.ReactNode;
 };
 
 const iconMap: Record<string, React.ElementType> = {
@@ -49,23 +50,32 @@ function renderMenuItem(
   key: string,
   deep = 0
 ): React.ReactNode {
+  const { setContentHome } = useAppContext();
+
   if (item.children && item.children.length > 0) {
     return deep < 2 ? (
       <Collapsible key={key} className='group/collapsible'>
         <SidebarGroup>
           <SidebarGroupLabel
-            className='text-(--text-color) text-sm hover:bg-accent'
             asChild
+            className='text-(--text-color) text-sm hover:bg-accent'
           >
             <CollapsibleTrigger className='border-t-2'>
-              {item.icon &&
-                React.createElement(iconMap[item.icon] ?? Menu, {
-                  className: 'w-4 h-4 mr-2',
-                })}
-              <span className='w-full text-left text-wrap wrap-anywhere line-clamp-1 '>
-                {item.title}
-              </span>
-              <ChevronDown className='ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90' />
+              <CustomTooltip
+                text={item.title}
+                className='text-(--text-color) bg-(--primary-color-gray) border-2 border-(--gray-background-light-3) text-sm hover:bg-accent rounded-lg max-w-100 text-shadow-white text-shadow-xs '
+              >
+                <div className='w-full flex items-center'>
+                  {item.icon &&
+                    React.createElement(iconMap[item.icon] ?? Menu, {
+                      className: 'w-4 h-4 mr-2',
+                    })}
+                  <span className='w-full text-left text-wrap wrap-anywhere line-clamp-1 '>
+                    {item.title}
+                  </span>
+                  <ChevronDown className='ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90' />
+                </div>
+              </CustomTooltip>
             </CollapsibleTrigger>
           </SidebarGroupLabel>
           <CollapsibleContent className='data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down flex flex-col gap-2 overflow-hidden transition-all duration-300'>
@@ -90,15 +100,20 @@ function renderMenuItem(
           <DropdownMenuTrigger asChild className='focus:bg-transparent w-full'>
             <SidebarMenuButton asChild className='focus:bg-transparent w-full'>
               <div className='w-full flex justify-between items-center border-t-2 mt-1 pr-2 rounded-lg'>
-                <div className='flex items-center w-full'>
-                  {item.icon &&
-                    React.createElement(iconMap[item.icon] ?? Menu, {
-                      className: 'w-4 h-4 mr-2',
-                    })}
-                  <span className=' w-full text-wrap wrap-anywhere line-clamp-1 font-semibold'>
-                    {item.title}
-                  </span>
-                </div>
+                <CustomTooltip
+                  text={item.title}
+                  className='text-(--text-color) bg-(--primary-color-gray) border-2 border-(--gray-background-light-3) text-sm hover:bg-accent rounded-lg max-w-100 text-shadow-white text-shadow-xs'
+                >
+                  <div className='flex items-center w-full'>
+                    {item.icon &&
+                      React.createElement(iconMap[item.icon] ?? Menu, {
+                        className: 'w-4 h-4 mr-2',
+                      })}
+                    <span className=' w-full text-wrap wrap-anywhere line-clamp-1 font-semibold'>
+                      {item.title}
+                    </span>
+                  </div>
+                </CustomTooltip>
                 <MoreHorizontal />
               </div>
             </SidebarMenuButton>
@@ -126,6 +141,10 @@ function renderMenuItem(
 
   return (
     <SidebarMenuItem
+      onClick={() => {
+        console.log('Setting contentHome to:', item.component);
+        setContentHome(item.component);
+      }}
       className={'rounded-lg ' + (deep > 2 ? 'w-full' : 'mr-2')}
       key={key}
       style={{
@@ -138,9 +157,14 @@ function renderMenuItem(
             React.createElement(iconMap[item.icon] ?? Menu, {
               className: 'w-4 h-4',
             })}
-          <span className='w-full text-wrap wrap-anywhere line-clamp-1 '>
-            {item.title}
-          </span>
+          <CustomTooltip
+            text={item.title}
+            className='text-(--text-color) bg-(--primary-color-gray) border-2 border-(--gray-background-light-3) text-sm hover:bg-accent rounded-lg max-w-100 text-shadow-white text-shadow-xs'
+          >
+            <span className='w-full text-wrap wrap-anywhere line-clamp-1 '>
+              {item.title}
+            </span>
+          </CustomTooltip>
         </div>
       </SidebarMenuButton>
     </SidebarMenuItem>

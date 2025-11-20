@@ -127,9 +127,6 @@ export const createRoutes = async (app) => {
     }
   });
 
-  //
-
-  // This should be deleted when /toProcess were done
   app.post('/forgotPassword', async (req, res) => {
     let userData = req.body || JSON.parse(req.headers.data || '{}');
     const origin = req.headers.origin;
