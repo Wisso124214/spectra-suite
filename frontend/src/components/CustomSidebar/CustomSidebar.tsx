@@ -141,10 +141,7 @@ function renderMenuItem(
 
   return (
     <SidebarMenuItem
-      onClick={() => {
-        console.log('Setting contentHome to:', item.component);
-        setContentHome(item.component);
-      }}
+      onClick={() => setContentHome(item.component)}
       className={'rounded-lg ' + (deep > 2 ? 'w-full' : 'mr-2')}
       key={key}
       style={{
