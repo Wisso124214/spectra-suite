@@ -20,6 +20,7 @@ import {
   validateConfirmPassword,
 } from '@/utils/validator/validator.tsx';
 import { useNavigate } from 'react-router-dom';
+import useAppContext from '@/hooks/useAppContext';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -30,6 +31,8 @@ export default function Register() {
   const [errorEmail, setErrorEmail] = useState('');
   const [errorPassword, setErrorPassword] = useState('');
   const [errorConfirmPassword, setErrorConfirmPassword] = useState('');
+
+  const { setUserData, userData } = useAppContext();
 
   const navigate = useNavigate();
   // Context disponible si se requiere en el futuro
@@ -43,7 +46,8 @@ export default function Register() {
       );
       return;
     }
-    fetch(SERVER_URL + '/register', {
+
+    await fetch(SERVER_URL + '/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,15 +62,17 @@ export default function Register() {
     })
       .then((res) => res.json())
       .then((response) => {
+        console.log('Register response', response);
         if (!response.errorCode) {
           toast.success(
             response.message || 'Inicio de sesión exitoso.',
             toastStyles
           );
-          localStorage.setItem(
-            'userData',
-            JSON.stringify({ isLoggedIn: true })
-          );
+          const newUserData = { ...userData, ...response.userData };
+          if (newUserData?.activeProfile)
+            newUserData.profile = newUserData.activeProfile;
+
+          setUserData(newUserData);
           setTimeout(() => {
             navigate('/home');
           }, 2000);
