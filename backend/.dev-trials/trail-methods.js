@@ -1,12 +1,12 @@
-import { subsystems, menus } from '#dbms/db-structure.js';
+import { subsystems, menus } from '../src/dbms/db-structure.js';
 import bcrypt from 'bcrypt';
-import DBMS from '#dbms/dbms.js';
-import Repository from '#repository/repository.js';
-import Debugger from '#debugger/debugger.js';
-import Utils from '#utils/utils.js';
-import Validator from '#validator/validator.js';
-import Config from '#config/config.js';
-import Formatter from '#formatter/formatter.js';
+import DBMS from '../src/dbms/dbms.js';
+import Repository from '../src/repository/repository.js';
+import Debugger from '../src/debugger/debugger.js';
+import Utils from '../src/utils/utils.js';
+import Validator from '../src/validator/validator.js';
+import Config from '../config/config.js';
+import Formatter from '../src/formatter/formatter.js';
 
 const methods = [];
 
@@ -603,6 +603,36 @@ export const trailMethods = async () => {
 if (process.env.TEST_TRAIL_METHODS === 'true') {
   trailMethods();
 }
+
+const testValidationObject = () => {
+  const errors = validator.validateStructuredData(
+    {
+      item1: ['string1', 'string2', 'string3'],
+      int: 123,
+      float: 12.34,
+      date: new Date(),
+      bool: true,
+      obj: { key1: 'value1', key2: 2 },
+      obj2: { key1: 'value1', key2: 2 },
+      str: 'a sample string',
+    },
+    {
+      item1: 'strings_array',
+      int: 'int',
+      float: 'float',
+      date: 'date',
+      bool: 'boolean',
+      obj: 'object',
+      obj2: {
+        key1: 'string',
+        key2: 'int',
+      },
+      str: 'string',
+    }
+  );
+  console.log('Validation Errors:', errors);
+};
+testValidationObject();
 
 const updateProfile = async ({ name = '', description = '' }) => {
   console.log('--- UPDATE PROFILE ---');
