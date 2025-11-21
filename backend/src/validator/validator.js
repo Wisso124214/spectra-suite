@@ -1,3 +1,4 @@
+import { checkEmailInUse, checkUsernameInUse } from '../dbms/db-validations.js';
 import Config from '../../config/config.js';
 import z from 'zod';
 
@@ -29,6 +30,7 @@ export default class Validator {
         object_of_strings_array: z.record(z.array(z.string())),
         array_of_objects: z.array(z.object({}).passthrough()),
         object_of_arrays: z.record(z.array(z.any())),
+        ...customTypes,
       };
 
       this.validationValues = this.config.getValidationValues();
@@ -56,27 +58,11 @@ export default class Validator {
       return err.errors[0].message; // Retorna primer error de Zod
     }
 
-    // Validación de existencia en DB
-    if (this.dbms && typeof this.dbms.query === 'function') {
-      try {
-        const result = await this.dbms.query(
-          'SELECT COUNT(*) FROM public."user" WHERE username = $1;',
-          [value]
-        );
-        const userExists = Number(result?.rows?.[0]?.count || 0) > 0;
-        if (userExists) {
-          return 'El nombre de usuario ya está en uso.';
-        }
-      } catch (err) {
-        console.error('Error checking username existence:', err);
-        return 'Error al validar el nombre de usuario.';
-      }
-    }
-
-    return '';
+    const usernameInUse = await checkUsernameInUse(value, this.dbms);
+    return usernameInUse || '';
   }
 
-  validateEmail(email) {
+  async validateEmail(email) {
     const { max } = this.validationValues.user.email;
 
     const emailSchema = z
@@ -93,20 +79,8 @@ export default class Validator {
       return err.errors[0].message;
     }
 
-    // Validación en DB
-    let emailInUse = false;
-    if (this.dbms && typeof this.dbms.query === 'function') {
-      this.dbms
-        .query('SELECT COUNT(*) FROM public."user" WHERE email = $1;', [email])
-        .then((result) => {
-          if (Number(result?.rows?.[0]?.count || 0) > 0) emailInUse = true;
-        })
-        .catch((err) => console.error('Error checking email existence:', err));
-    }
-
-    if (emailInUse) return 'El email ya está en uso.';
-
-    return '';
+    const emailInUse = await checkEmailInUse(email, this.dbms);
+    return emailInUse || '';
   }
 
   validatePassword(text) {

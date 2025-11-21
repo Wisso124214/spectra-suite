@@ -1,9 +1,9 @@
-import { pool } from "../../config/secret-config.js";
-import Config from "../../config/config.js";
-import Utils from "../utils/utils.js";
-import Formatter from "../formatter/formatter.js";
-import parseMOP from "../_business/atx/parse-mop.js";
-import Debugger from "../debugger/debugger.js";
+import { pool } from '../../config/secret-config.js';
+import Config from '../../config/config.js';
+import Utils from '../utils/utils.js';
+import Formatter from '../formatter/formatter.js';
+import parseMOP from '../_business/atx/parse-mop.js';
+import Debugger from '../debugger/debugger.js';
 
 export default class DBMS {
   constructor(validatorInstance = null) {
@@ -133,8 +133,6 @@ export default class DBMS {
   }
 
   async executeNamedQuery({ nameQuery, params = [] }) {
-    console.log(nameQuery);
-    console.log(JSON.stringify(params, null, 2));
     if (!this.queries || !this.queries[nameQuery]) {
       this.utils.handleError({
         message: `Consulta nombrada '${nameQuery}' no encontrada`,

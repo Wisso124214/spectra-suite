@@ -100,6 +100,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!res.errorCode) {
           toast.success('Sesión cerrada con éxito.', toastStyles);
           setUserData(null);
+          setContentHome(null);
           setTimeout(() => {
             navigate('/login');
           }, 1000);

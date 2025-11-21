@@ -160,8 +160,8 @@ export default class Session {
       };
     }
 
-    const usernameError = this.validator.validateUsername(username);
-    const emailError = this.validator.validateEmail(email);
+    const usernameError = await this.validator.validateUsername(username);
+    const emailError = await this.validator.validateEmail(email);
     const passwordError = this.validator.validatePassword(password);
     const confirmPasswordError = this.validator.validateConfirmPassword(
       password,
@@ -174,6 +174,8 @@ export default class Session {
       passwordError,
       confirmPasswordError,
     };
+
+    console.log('Validaciones de registro:', validations);
 
     for (const [key, value] of Object.entries(validations)) {
       if (value) {
@@ -257,7 +259,6 @@ export default class Session {
   };
 
   forgotPassword = async ({ userData, origin = '' }) => {
-    console.log('userData received in forgotPassword:', userData);
     const { email } = userData;
     if (!email) {
       return {
@@ -265,7 +266,7 @@ export default class Session {
         message: 'Por favor ingrese su email',
       };
     }
-    const emailError = this.validator.validateEmail(email);
+    const emailError = await this.validator.validateEmail(email);
     if (emailError) {
       return { errorCode: this.ERROR_CODES.BAD_REQUEST, message: emailError };
     }

@@ -78,6 +78,7 @@ export default class Dispatcher {
     });
 
     app.post('/register', async (req, res) => {
+      console.log('Registro de usuario iniciado');
       if (existSession(req)) {
         return res.send({
           message: `Ya has iniciado sesión. Cierra la sesión para continuar.`,
@@ -92,6 +93,7 @@ export default class Dispatcher {
         userData,
         isParticipant,
       });
+
       if (registerResult.errorCode)
         return res.status(registerResult.errorCode).send(registerResult);
 
