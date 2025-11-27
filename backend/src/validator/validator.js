@@ -62,6 +62,24 @@ export default class Validator {
     return usernameInUse || '';
   }
 
+  async validateUsernameLogin(value) {
+    const { min, max } = this.validationValues.user.username;
+
+    // Validación con Zod
+    const usernameSchema = z
+      .string()
+      .min(min, `El nombre de usuario debe tener al menos ${min} caracteres.`)
+      .max(max, `El nombre de usuario no puede tener más de ${max} caracteres.`)
+      .regex(/^[A-Za-z0-9.,$*]+$/, 'Solo letras, números y . , $ *');
+
+    try {
+      usernameSchema.parse(value);
+    } catch (err) {
+      return err.errors[0].message; // Retorna primer error de Zod
+    }
+    return '';
+  }
+
   async validateEmail(email) {
     const { max } = this.validationValues.user.email;
 

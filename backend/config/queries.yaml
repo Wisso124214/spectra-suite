@@ -236,4 +236,46 @@
     ,structure_params: { }
     ,orderArray: []
   }
+  ,
+  # Nuevas querys aquí
+  'getUser':{
+    query: 'SELECT * FROM public."user" WHERE username = $1',
+    structure_params: { username: 'string' },
+    orderArray: ['username']
+  },
+  'userProfilesResult':{
+    query: 'SELECT "profile".* FROM public."user_profile" up INNER JOIN public."profile" ON up.id_profile = "profile".id INNER JOIN public."user" u ON up.id_user = u.id WHERE u.username = $1',
+    structure_params: { username: 'string' },
+    orderArray: ['username']
+  },
+  'getUserByEmail':{
+    query: 'SELECT * FROM public."user" WHERE email = $1;',
+    structure_params: { email: 'string' },
+    orderArray: ['email']
+  },
+  'updateUserPassword':{
+    query: 'UPDATE public."user" SET password = $1 WHERE id = $2;',
+    structure_params: { password: 'string', userId: 'string' },
+    orderArray: ['password', 'userId']
+  },
+  'getTxTransactionByTx':{
+    query: 'SELECT t.tx, t.description, s.name AS subsystem, c.name AS class, m.name AS method
+        FROM public."transaction" t
+        JOIN public."subsystem" s ON t.id_subsystem = s.id
+        JOIN public."class" c ON t.id_class = c.id
+        JOIN public."method" m ON t.id_method = m.id
+        WHERE t.tx = $1::integer;',
+    structure_params: { tx: 'int' },
+    orderArray: ['tx']
+  },
+  'transactionBySubsystemClassMethod':{
+    query: 'SELECT t.tx, t.description, s.name AS subsystem, c.name AS class, m.name AS method
+        FROM public."transaction" t
+        JOIN public."subsystem" s ON t.id_subsystem = s.id
+        JOIN public."class" c ON t.id_class = c.id
+        JOIN public."method" m ON t.id_method = m.id
+        WHERE s.name = $1 AND c.name = $2 AND m.name = $3;',
+    structure_params: { subsystem: 'string', className: 'string', method: 'string' },
+    orderArray: ['subsystem', 'className', 'method']
+  }
 }

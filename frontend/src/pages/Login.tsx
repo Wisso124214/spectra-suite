@@ -107,8 +107,7 @@ export default function Login() {
             setIsShowingPopup(true);
             setChildrenPopup(getChildrenPopup(response.profiles));
           } else {
-            const data = await response.json();
-            const userData = data?.userData || null;
+            const userData = response?.userData || null;
             const newUserData = {
               ...(userData?.activeProfile
                 ? { profile: userData.activeProfile }
@@ -139,16 +138,16 @@ export default function Login() {
   const getChildrenPopup = (profiles: string[]) => {
     return (
       <>
-        <h1 className='text-lg font-bold text-foreground'>
+        <h1 className="text-lg font-bold text-foreground">
           Seleccione a continuación su perfil:
         </h1>
         <Select onValueChange={setProfileSelected}>
-          <SelectTrigger className='min-w-[200px] capitalize'>
-            <SelectValue placeholder='Seleccione un perfil' />
+          <SelectTrigger className="min-w-[200px] capitalize">
+            <SelectValue placeholder="Seleccione un perfil" />
           </SelectTrigger>
           <SelectContent>
             {profiles.map((profile) => (
-              <SelectItem key={profile} value={profile} className='capitalize'>
+              <SelectItem key={profile} value={profile} className="capitalize">
                 {profile}
               </SelectItem>
             ))}
@@ -159,58 +158,58 @@ export default function Login() {
   };
 
   return (
-    <div className='flex items-center justify-center h-screen w-full'>
-      <Card className='w-full max-w-sm'>
-        <CardHeader className='text-left'>
+    <div className="flex items-center justify-center h-screen w-full">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-left">
           <CardTitle>Iniciar sesión</CardTitle>
           <CardDescription>
             Ingrese su nombre de usuario para iniciar sesión en su cuenta
           </CardDescription>
           <CardAction>
-            <Button onClick={() => navigate('/signup')} variant='link'>
+            <Button onClick={() => navigate('/signup')} variant="link">
               Registrarse
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
-            <div className='flex flex-col gap-6'>
-              <div className='grid gap-2'>
-                <Label htmlFor='username'>Nombre de usuario</Label>
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="username">Nombre de usuario</Label>
                 <Input
-                  id='username'
-                  type='text'
+                  id="username"
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder='usuario123'
+                  placeholder="usuario123"
                   required
                 />
               </div>
-              <div className='grid gap-2'>
-                <div className='flex items-center'>
-                  <Label htmlFor='password'>Contraseña</Label>
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Contraseña</Label>
                   <a
-                    href='/forgot-password'
-                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
+                    href="/forgot-password"
+                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Olvidó su contraseña?
                   </a>
                 </div>
                 <Input
-                  id='password'
-                  type='password'
+                  id="password"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder='•••••••••••'
+                  placeholder="•••••••••••"
                   required
                 />
               </div>
             </div>
-            <div className='mt-6 flex flex-col gap-2'>
-              <Button type='submit' className='w-full'>
+            <div className="mt-6 flex flex-col gap-2">
+              <Button type="submit" className="w-full">
                 Iniciar sesión
               </Button>
-              <Button variant='outline' className='w-full'>
+              <Button variant="outline" className="w-full">
                 Iniciar sesión con Google
               </Button>
             </div>

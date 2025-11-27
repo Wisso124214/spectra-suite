@@ -40,11 +40,20 @@ export default class Session {
           message: 'Los datos de usuario son incompletos.',
         };
       }
-
-      const result = await this.dbms.query(
-        'SELECT * FROM public."user" WHERE username = $1',
-        [userData.username]
+      const usernameError = await this.validator.validateUsernameLogin(
+        userData.username
       );
+
+      if (usernameError) {
+        return {
+          errorCode: this.ERROR_CODES.BAD_REQUEST,
+          message: 'nombre de usuario invalido',
+        };
+      }
+      const result = await this.dbms.executeNamedQuery({
+        nameQuery: 'getUser',
+        params: [userData.username],
+      });
 
       if (!result?.rows?.length) {
         return {
@@ -98,13 +107,10 @@ export default class Session {
         };
       }
 
-      const userProfilesResult = await this.dbms.query(
-        `SELECT "profile".* FROM public."user_profile" up
-          INNER JOIN public."profile" ON up.id_profile = "profile".id
-          INNER JOIN public."user" u ON up.id_user = u.id
-          WHERE u.username = $1`,
-        [username]
-      );
+      const userProfilesResult = await this.dbms.executeNamedQuery({
+        nameQuery: 'userProfilesResult',
+        params: [username],
+      });
 
       const userProfiles = userProfilesResult.rows.map((up) => up.name);
 
@@ -272,8 +278,12 @@ export default class Session {
     }
 
     // Busca el usuario con ese email
+
     const data = await this.dbms
-      .query('SELECT * FROM public."user" WHERE email = $1;', [email])
+      .executeNamedQuery({
+        nameQuery: 'getUserByEmail',
+        params: [email],
+      })
       .then((result) => result.rows);
 
     if (data.length > 1) {
@@ -359,10 +369,11 @@ export default class Session {
     try {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      await this.dbms.query(
-        'UPDATE public."user" SET password = $1 WHERE id = $2;',
-        [hashedPassword, userId]
-      );
+
+      await this.dbms.executeNamedQuery({
+        nameQuery: 'updateUserPassword',
+        params: [hashedPassword, userId],
+      });
 
       return {
         message: `Contraseña actualizada correctamente para el usuario ${

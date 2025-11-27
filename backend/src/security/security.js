@@ -1,7 +1,7 @@
-import DBMS from "../dbms/dbms.js";
-import Utils from "../utils/utils.js";
-import Config from "../../config/config.js";
-import executeMethod from "../_business/atx/execute-method.js";
+import DBMS from '../dbms/dbms.js';
+import Utils from '../utils/utils.js';
+import Config from '../../config/config.js';
+import executeMethod from '../_business/atx/execute-method.js';
 
 export default class Security {
   constructor() {
@@ -326,6 +326,7 @@ export default class Security {
    * Devuelve información de la transacción y nombres asociados
    */
   async getTxTransaction(data) {
+    // Validación inicial
     if (!data || typeof data !== 'object') {
       return {
         message: 'Datos inválidos, el parámetro debe ser un objeto',
@@ -334,42 +335,44 @@ export default class Security {
     }
 
     const { tx, subsystem, className, method } = data;
-    let queryString = '';
-    let params = [];
-    if (tx) {
-      queryString = `SELECT t.tx, t.description, s.name AS subsystem, c.name AS class, m.name AS method
-        FROM public."transaction" t
-        JOIN public."subsystem" s ON t.id_subsystem = s.id
-        JOIN public."class" c ON t.id_class = c.id
-        JOIN public."method" m ON t.id_method = m.id
-        WHERE t.tx = $1::integer;`;
-      params = [tx];
-    } else if (subsystem && className && method) {
-      queryString = `SELECT t.tx, t.description, s.name AS subsystem, c.name AS class, m.name AS method
-        FROM public."transaction" t
-        JOIN public."subsystem" s ON t.id_subsystem = s.id
-        JOIN public."class" c ON t.id_class = c.id
-        JOIN public."method" m ON t.id_method = m.id
-        WHERE s.name = $1 AND c.name = $2 AND m.name = $3;`;
-      params = [subsystem, className, method];
-    } else {
-      return this.utils.handleError({
-        message: 'Debe proporcionar tx o subsystem/className/method',
-        errorCode: this.ERROR_CODES.BAD_REQUEST,
-      });
-    }
+    let result;
+
     try {
-      const res = await this.dbms
-        .query({ query: queryString, params })
-        .then((r) => r);
-      if (!res.rows || res.rows.length === 0)
+      // Caso 1: búsqueda por TX
+      if (tx) {
+        result = await this.dbms.executeNamedQuery({
+          nameQuery: 'getTxTransactionByTx',
+          params: { tx },
+        });
+      }
+      // Caso 2: búsqueda por subsystem/class/method
+      else if (subsystem && className && method) {
+        result = await this.dbms.executeNamedQuery({
+          nameQuery: 'transactionBySubsystemClassMethod',
+          params: { subsystem, className, method },
+        });
+      }
+      // Caso inválido
+      else {
+        return this.utils.handleError({
+          message: 'Debe proporcionar tx o subsystem/className/method',
+          errorCode: this.ERROR_CODES.BAD_REQUEST,
+        });
+      }
+
+      // Validación de resultado
+      if (!result.rows || result.rows.length === 0) {
         return this.utils.handleError({
           message: 'Transacción no encontrada',
           errorCode: this.ERROR_CODES.NOT_FOUND,
         });
+      }
 
-      res.rows[0].className = res.rows[0].class;
-      return res.rows[0];
+      // Normalizar nombre
+      const row = result.rows[0];
+      row.className = row.class;
+
+      return row;
     } catch (error) {
       return this.utils.handleError({
         message: 'Error en getTxTransaction',

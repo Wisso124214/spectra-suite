@@ -71,10 +71,11 @@ export default class Dispatcher {
         return res.send(ret);
       } else if (ret?.profiles) return res.send(ret);
       else if (ret?.errorCode) return res.status(ret.errorCode).send(ret);
-      else
-        return res
-          .status(ERROR_CODES.INTERNAL_SERVER_ERROR)
-          .send({ message: 'Error al iniciar sesión' });
+      else console.log(res);
+
+      return res
+        .status(ERROR_CODES.INTERNAL_SERVER_ERROR)
+        .send({ message: 'Error al iniciar sesión' });
     });
 
     app.post('/register', async (req, res) => {
