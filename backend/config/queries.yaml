@@ -318,6 +318,13 @@
     query: 'SELECT id, name, descripcion, fecha, hora, costo, capacidad, visibilidad, lugar FROM public."event" ORDER BY fecha ASC;',
     structure_params: {},
     orderArray: []
+  },
+  'deleteEvent': {
+    query: 'DELETE FROM public."event" WHERE id = $1;',
+    structure_params: {
+      id: 'number'
+    },
+    orderArray: ['id']
   }
 
 

@@ -11,6 +11,8 @@ import useAppContext from '@/hooks/useAppContext';
 import Loader from '@/components/Loader/Loader';
 import CreateEvent from '@/components/CreateEvent/CreateEvent';
 import UpdateEvent from '@/components/UpdateEvent/UpdateEvent';
+import DeleteEvent from '@/components/DeleteEvent/DeleteEvent';
+import ListEvents from '@/components/ListEvent/ListEvent';
 
 const testSubmenu = [
   {
@@ -93,6 +95,8 @@ const menuComponents: Record<string, React.ReactNode> = {
   'Eliminar Usuario': <DeleteUser Title={'Eliminar Usuario'} />,
   'Crear Evento': <CreateEvent Title={'Crear Evento'} />,
   'Actualizar Evento': <UpdateEvent Title={'Actualizar Evento'} />,
+  'Eliminar Evento': <DeleteEvent Title={'Eliminar Evento'} />,
+  'Listar Eventos': <ListEvents Title={'Lista de Eventos'} />,
 };
 
 // Tipos del backend (estructura de seguridad)
