@@ -160,41 +160,55 @@ export default class Dispatcher {
     app.post('/toProcess', async (req, res) => {
       try {
         const userData = getSession(req);
-        if (!userData)
+        if (!userData) {
           return res.status(ERROR_CODES.UNAUTHORIZED).send({
             errorCode: ERROR_CODES.UNAUTHORIZED,
             message: 'Usuario no autenticado',
           });
+        }
 
+        // Obtenemos el payload desde body o headers
         const payload = req.body || JSON.parse(req.headers.data || '{}');
-        const { tx, params } = payload;
+        const { tx, nameQuery, params } = payload;
 
-        let transactionData;
-        try {
-          transactionData = await security.getTxTransaction({ tx });
-        } catch (err) {
-          return res.status(ERROR_CODES.NOT_FOUND).send({
-            errorCode: ERROR_CODES.NOT_FOUND,
-            message: 'Código de transacción inválido',
-            userData,
+        if (!tx && !nameQuery) {
+          return res.status(ERROR_CODES.BAD_REQUEST).send({
+            errorCode: ERROR_CODES.BAD_REQUEST,
+            message: 'Se requiere tx o nameQuery',
           });
         }
 
+        const objectParams =
+          typeof params === 'string'
+            ? JSON.parse(params || '{}')
+            : params || {};
+
+        let transactionData;
+
+        if (tx) {
+          // --- Lógica para ejecutar un método de BO ---
+          transactionData = await security.getTxTransaction({ tx });
+        } else if (nameQuery) {
+          transactionData = await security.getTxTransactionByName({
+            nameQuery,
+          });
+          console.log('Datos del getby name', transactionData);
+        }
         const { subsystem, className, method } = transactionData;
-        if (!className || !method)
+
+        if (!className || !method) {
           return res.status(ERROR_CODES.BAD_REQUEST).send({
             errorCode: ERROR_CODES.BAD_REQUEST,
-            message: 'Se requieren className y method',
-            userData,
+            message: 'Se requieren className y method para la transacción',
           });
-
+        }
         const profileFromSession = userData.activeProfile;
-        if (!profileFromSession)
+        if (!profileFromSession) {
           return res.status(ERROR_CODES.BAD_REQUEST).send({
             errorCode: ERROR_CODES.BAD_REQUEST,
             message: 'Sesión expirada',
-            userData,
           });
+        }
 
         const perm = await security.checkPermissionMethod({
           subsystem,
@@ -202,30 +216,37 @@ export default class Dispatcher {
           method,
           profile: profileFromSession,
         });
-        if (perm && !perm.hasPermission)
+
+        console.log(perm);
+
+        if (perm && !perm.hasPermission) {
           return res.status(ERROR_CODES.FORBIDDEN).send({
             errorCode: ERROR_CODES.FORBIDDEN,
             tx,
             message: 'Sin permisos',
             permission: perm.hasPermission,
-            userData,
           });
+        }
+        console.log(
+          'datos:',
+          transactionData.subsystem,
+          className,
+          method,
+          objectParams
+        );
 
-        const objectParams =
-          typeof params === 'string'
-            ? JSON.parse(params || '{}')
-            : params || {};
-        const execResult = await security.executeMethod({
-          subsystem,
+        const result = await this.security.executeMethod({
+          subsystem: transactionData.subsystem,
           className,
           method,
           params: objectParams,
         });
+
         const newUserData = getSession(req);
 
         return res.send({
           ok: true,
-          result: execResult,
+          result: result,
           userData: newUserData,
         });
       } catch (error) {
@@ -238,7 +259,7 @@ export default class Dispatcher {
       }
     });
 
-    // Catch-all POST → redirect 307
+    // Redirección de todos los POST hacia /toProcess
     app.post(/.*/, (req, res) => res.redirect(307, '/toProcess'));
   }
 

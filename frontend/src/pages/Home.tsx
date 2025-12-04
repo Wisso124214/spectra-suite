@@ -9,6 +9,8 @@ import DeleteUser from '../components/DeleteUser/DeleteUser';
 import UpdateUser from '../components/UpdateUser/UpdateUser';
 import useAppContext from '@/hooks/useAppContext';
 import Loader from '@/components/Loader/Loader';
+import CreateEvent from '@/components/CreateEvent/CreateEvent';
+import UpdateEvent from '@/components/UpdateEvent/UpdateEvent';
 
 const testSubmenu = [
   {
@@ -89,6 +91,8 @@ const menuComponents: Record<string, React.ReactNode> = {
   'Crear Usuario': <CreateUser Title={'Crear Usuario'} />,
   'Actualizar Usuario': <UpdateUser Title={'Actualizar Usuario'} />,
   'Eliminar Usuario': <DeleteUser Title={'Eliminar Usuario'} />,
+  'Crear Evento': <CreateEvent Title={'Crear Evento'} />,
+  'Actualizar Evento': <UpdateEvent Title={'Actualizar Evento'} />,
 };
 
 // Tipos del backend (estructura de seguridad)
@@ -234,7 +238,7 @@ export default function Home() {
           (isSidebarOpen ? 'md:ml-72 mr-0 md:w-[calc(100vw-290px)] ' : '')
         }
       >
-        {contentHome || <Loader className='mb-35' />}
+        {contentHome || <Loader className="mb-35" />}
       </div>
       <div className="absolute z-12 w-0">
         <Layout defaultOpen={true}>

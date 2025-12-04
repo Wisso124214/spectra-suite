@@ -30,5 +30,12 @@
   },
   "transaction": {
     "description": { "max": 200 }
+  },
+  "evento": {
+    "name": { "min": 3, "max": 50 },
+    "description": { "max": 300 },
+    "lugar": { "min": 3, "max": 50 },
+    "costo": { "min": 0, "max": 100000 },
+    "capacidad": { "min": 0, "max": 10000 }
   }
 }

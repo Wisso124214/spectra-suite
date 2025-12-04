@@ -143,17 +143,20 @@ export default function CreateUser({
     try {
       console.log('data:', username, email, password, selectedPerfil);
 
-      const res = await fetch(SERVER_URL + '/register', {
+      const res = await fetch(SERVER_URL + '/toProcess', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username,
-          password,
-          email,
-          confirmPassword,
-          perfil: selectedPerfil,
+          nameQuery: 'insert',
+          params: {
+            name: username,
+            password,
+            email,
+            status: 'active',
+            register_date: new Date().toISOString(),
+          },
         }),
         credentials: 'include',
       });

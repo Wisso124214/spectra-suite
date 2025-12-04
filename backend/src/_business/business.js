@@ -112,4 +112,8 @@ export default class Business {
   getFolderPaths() {
     return this.folderPaths;
   }
+
+  getFileName(className, functionName) {
+    return this.mapFiles[className]?.[functionName] || null;
+  }
 }

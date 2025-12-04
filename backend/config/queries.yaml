@@ -180,10 +180,15 @@
       structure_params: { subsystem_name: 'string', class_name: 'string', method_name: 'string', description: 'string' },
       orderArray: ['subsystem_name', 'class_name', 'method_name', 'description']
   },
-  'getTxTransactionByNames': {
-    query: 'WITH s AS (SELECT id FROM public."subsystem" WHERE name = $1), c AS (SELECT id FROM public."class" WHERE name = $2), m AS (SELECT id FROM public."method" WHERE name = $3) SELECT t.tx, t.description FROM public."transaction" t, s, c, m WHERE t.id_subsystem = s.id AND t.id_class = c.id AND t.id_method = m.id;',
-      structure_params: { subsystem_name: 'string', class_name: 'string', method_name: 'string' },
-      orderArray: ['subsystem_name', 'class_name', 'method_name']
+  'getTxTransactionByName': {
+    query: 'SELECT t.tx, t.description, s.name AS subsystem, c.name AS class, m.name AS method
+        FROM public."transaction" t
+        JOIN public."subsystem" s ON t.id_subsystem = s.id
+        JOIN public."class" c ON t.id_class = c.id
+        JOIN public."method" m ON t.id_method = m.id
+        WHERE t."nombre_transaccion" = $1;',
+    structure_params: { nombre_transaccion: 'string' },
+    orderArray: ['nombre_transaccion']
   },
   'getTxTransactionById': {
     query: 'SELECT tx, description FROM public."transaction" WHERE tx = $1;',
@@ -277,5 +282,43 @@
         WHERE s.name = $1 AND c.name = $2 AND m.name = $3;',
     structure_params: { subsystem: 'string', className: 'string', method: 'string' },
     orderArray: ['subsystem', 'className', 'method']
+  },
+  'createEvent': {
+    query:
+      'INSERT INTO public."event" (name, descripcion, fecha, hora, costo, capacidad, visibilidad, lugar) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);',
+    structure_params: {
+      name: 'string',
+      descripcion: 'string',
+      fecha: 'string',   
+      hora: 'string',    
+      costo: 'number',   
+      capacidad: 'number',
+      visibilidad: 'string', 
+      lugar: 'string'
+    },
+    orderArray: ['name', 'descripcion', 'fecha', 'hora', 'costo', 'capacidad', 'visibilidad', 'lugar']
+  },
+  'updateEvents': {
+    query:
+      'UPDATE public."event" SET name = $1, descripcion = $2, fecha = $3, hora = $4, costo = $5, capacidad = $6, visibilidad = $7, lugar = $8 WHERE id = $9;',
+    structure_params: {
+      name: 'string',
+      descripcion: 'string',
+      fecha: 'string',   
+      hora: 'string',    
+      costo: 'number',   
+      capacidad: 'number',
+      visibilidad: 'string', 
+      lugar: 'string',
+      id: 'number'
+    },
+    orderArray: ['name', 'descripcion', 'fecha', 'hora', 'costo', 'capacidad', 'visibilidad', 'lugar', 'id']
+  },
+  'list_event': {
+    query: 'SELECT id, name, descripcion, fecha, hora, costo, capacidad, visibilidad, lugar FROM public."event" ORDER BY fecha ASC;',
+    structure_params: {},
+    orderArray: []
   }
+
+
 }

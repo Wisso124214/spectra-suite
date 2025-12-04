@@ -1,6 +1,6 @@
-import Utils from "../../utils/utils.js";
-import Config from "../../../config/config.js";
-import Business from "../business.js";
+import Utils from '../../utils/utils.js';
+import Config from '../../../config/config.js';
+import Business from '../business.js';
 
 export default async function getMethod({ subsystem, className, method }) {
   const utils = new Utils();
@@ -29,6 +29,8 @@ export default async function getMethod({ subsystem, className, method }) {
     path = `#${className}/${fileName}`;
   } else if (subsystem === 'ftx') {
     path = `#${subsystem}/${className}.js`;
+  } else if (subsystem === 'eventos') {
+    path = `../ftx/${className}.js`;
   } else {
     path = `#${className}/${className}.js`;
   }

@@ -9,8 +9,9 @@ export default class Security {
       this.permissions = {};
       this.utils = new Utils();
       this.dbms = new DBMS();
-      this.ERROR_CODES = new Config().getErrorCodes();
       this.executeMethod = executeMethod;
+
+      this.ERROR_CODES = new Config().getErrorCodes();
 
       Security.instance = this;
     }
@@ -310,6 +311,7 @@ export default class Security {
     }
 
     const key = `${s}_${c}_${m}_${p}`;
+
     return {
       hasPermission: !!this.permissions[key],
       subsystem: subsystem || null,
@@ -376,6 +378,54 @@ export default class Security {
     } catch (error) {
       return this.utils.handleError({
         message: 'Error en getTxTransaction',
+        errorCode: this.ERROR_CODES.DB_ERROR,
+        error,
+      });
+    }
+  }
+  /**
+   * getTxTransactionByName
+   * data: { name }
+   * Busca la transacción por su nombre (columna nombre_transaccion)
+   */
+
+  async getTxTransactionByName(data) {
+    if (!data || typeof data !== 'object') {
+      return this.utils.handleError({
+        message: 'Datos inválidos, el parámetro debe ser un objeto',
+        errorCode: this.ERROR_CODES.BAD_REQUEST,
+      });
+    }
+
+    const { nameQuery } = data;
+
+    if (!nameQuery) {
+      return this.utils.handleError({
+        message: 'Debe proporcionar name',
+        errorCode: this.ERROR_CODES.BAD_REQUEST,
+      });
+    }
+
+    try {
+      const result = await this.dbms.executeNamedQuery({
+        nameQuery: 'getTxTransactionByName',
+        params: { nombre_transaccion: nameQuery },
+      });
+
+      if (!result.rows || result.rows.length === 0) {
+        return this.utils.handleError({
+          message: 'Transacción no encontrada por nombre',
+          errorCode: this.ERROR_CODES.NOT_FOUND,
+        });
+      }
+
+      const row = result.rows[0];
+      row.className = row.class; // normalizar
+
+      return row;
+    } catch (error) {
+      return this.utils.handleError({
+        message: 'Error en getTxTransactionByName',
         errorCode: this.ERROR_CODES.DB_ERROR,
         error,
       });

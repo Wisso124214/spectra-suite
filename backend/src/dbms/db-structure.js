@@ -1,4 +1,4 @@
-import Config from "../../config/config.js";
+import Config from '../../config/config.js';
 const PROFILES = await new Config().getProfiles();
 
 const { SUPER_ADMIN, SECURITY_ADMIN, EVENT_ADMIN, PARTICIPANT, DB_ADMIN } =
@@ -305,6 +305,32 @@ export const subsystems = {
       },
     },
   },
+  evento: {
+    description: 'Subsistema de Gestión de Eventos',
+    classes: {
+      bo: {
+        description: 'Gestión de los eventos',
+        methods: {
+          create: {
+            description: 'Crear un nuevo evento',
+            allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+          },
+          update: {
+            description: 'Actualizar un evento existente',
+            allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+          },
+          delete: {
+            description: 'Eliminar un evento',
+            allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+          },
+          list: {
+            description: 'Listar todos los eventos',
+            allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+          },
+        },
+      },
+    },
+  },
 };
 
 /**
@@ -579,6 +605,86 @@ export const menus = {
           },
           params: {
             tableName: 'user',
+          },
+        },
+      },
+    },
+  },
+  evento: {
+    'Gestión de Eventos': {
+      description: 'Crear, Actualizar, Eliminar y Listar Eventos',
+      submenus: {
+        'Crear Evento': {
+          description: 'Crear un nuevo Evento',
+          options: {
+            'Crear Evento': {
+              description: 'Crear un evento',
+              allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+              method: {
+                subsystem: 'eventos',
+                class: 'eventos',
+                method: 'create',
+              },
+              params: {
+                data: {
+                  name: 'Nombre del evento',
+                  description: 'Descripción del evento',
+                },
+              },
+            },
+          },
+        },
+        'Actualizar Evento': {
+          description: 'Actualizar un Evento existente',
+          options: {
+            'Actualizar Evento': {
+              description: 'Actualizar un evento',
+              allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+              method: {
+                subsystem: 'eventos',
+                class: 'eventos',
+                method: 'update',
+              },
+              params: {
+                data: {
+                  eventId: 1, // ID del evento que se va a actualizar
+                  name: 'Nuevo nombre del evento',
+                  description: 'Nueva descripción del evento',
+                },
+              },
+            },
+          },
+        },
+        'Eliminar Evento': {
+          description: 'Eliminar un Evento existente',
+          options: {
+            'Eliminar Evento': {
+              description: 'Eliminar un evento',
+              allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+              method: {
+                subsystem: 'eventos',
+                class: 'eventos',
+                method: 'delete',
+              },
+              params: {
+                eventId: 1, // ID del evento que se va a eliminar
+              },
+            },
+          },
+        },
+        'Listar Eventos': {
+          description: 'Listar todos los Eventos',
+          options: {
+            'Listar Eventos': {
+              description: 'Listar todos los eventos',
+              allowedProfiles: [SUPER_ADMIN, EVENT_ADMIN],
+              method: {
+                subsystem: 'eventos',
+                class: 'eventos',
+                method: 'list',
+              },
+              params: {},
+            },
           },
         },
       },

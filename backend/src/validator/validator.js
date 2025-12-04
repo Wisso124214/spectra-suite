@@ -250,4 +250,99 @@ export default class Validator {
       return false;
     }
   }
+
+  // validator.js
+  validateDate(value) {
+    // aceptar tanto Date como string ISO
+    try {
+      if (value instanceof Date) {
+        if (isNaN(value.getTime())) return 'Fecha inválida';
+        return value;
+      }
+
+      // acepta strings; Zod transforma a Date
+      const dateSchema = z.string().transform((val) => new Date(val));
+      const parsed = dateSchema.parse(value);
+
+      if (isNaN(parsed.getTime())) {
+        return 'Fecha inválida';
+      }
+
+      return parsed; // <-- devuelve Date en caso OK
+    } catch (err) {
+      // En algunos casos err.errors puede no existir; protegerse
+      return err?.errors?.[0]?.message ?? 'Fecha inválida';
+    }
+  }
+
+  // validateFloat: acepta enteros o decimales, acepta strings numéricos,
+  // usa validationValues[entity][field] si se le pasan entity+field para min/max.
+  validateFloat(value, entity = null, field = null) {
+    // Normalizar entrada: aceptar '0', '12.5', 0, 12.5, etc.
+    if (value === undefined || value === null || value === '') {
+      return 'Valor numérico requerido';
+    }
+
+    const num = Number(value);
+    if (!isFinite(num)) {
+      return 'No es un número válido';
+    }
+
+    // Si hay configuración para entity+field (min/max), aplicarla
+    if (entity && field) {
+      const cfg = this.validationValues?.[entity]?.[field];
+      if (cfg) {
+        const { min, max } = cfg;
+        if (typeof min !== 'undefined' && num < min) {
+          return `${field} debe ser >= ${min}`;
+        }
+        if (typeof max !== 'undefined' && num > max) {
+          return `${field} debe ser <= ${max}`;
+        }
+        return ''; // pasó las reglas específicas
+      }
+      // Si pediste reglas y no existen, devolver error claro
+      if (this.validationValues?.[entity]) {
+        return `No hay reglas de validación para ${entity}.${field}`;
+      }
+    }
+
+    // Fallback: zod parse para mensajes consistentes (opcional)
+    try {
+      const schema = z.number();
+      schema.parse(num);
+      return '';
+    } catch (err) {
+      return err?.errors?.[0]?.message ?? 'Valor numérico inválido';
+    }
+  }
+
+  // validateInteger: asegura que sea entero (uso para capacidad)
+  validateInteger(value, entity = null, field = null) {
+    if (value === undefined || value === null || value === '') {
+      return 'Valor entero requerido';
+    }
+
+    const num = Number(value);
+    if (!Number.isInteger(num)) {
+      return 'Debe ser un entero';
+    }
+
+    if (entity && field) {
+      const cfg = this.validationValues?.[entity]?.[field];
+      if (cfg) {
+        const { min, max } = cfg;
+        if (typeof min !== 'undefined' && num < min) {
+          return `${field} debe ser >= ${min}`;
+        }
+        if (typeof max !== 'undefined' && num > max) {
+          return `${field} debe ser <= ${max}`;
+        }
+      } else if (this.validationValues?.[entity]) {
+        return `No hay reglas de validación para ${entity}.${field}`;
+      }
+    }
+
+    return '';
+  }
 }
