@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CustomSidebar from '../components/CustomSidebar/CustomSidebar';
+import CustomSidebar from '@/components/CustomSidebar';
 import { Layout } from '@/components/ui/layout';
 import { SERVER_URL } from '../../config';
-import { type MenuData } from '../components/CustomSidebar/CustomSidebar';
-import CreateUser from '../components/CreateUser/CreateUser';
-import DeleteUser from '../components/DeleteUser/DeleteUser';
-import UpdateUser from '../components/UpdateUser/UpdateUser';
+import { type MenuData } from '@/components/CustomSidebar/CustomSidebar';
+import CreateUser from '@/components/CreateUser';
+import DeleteUser from '@/components/DeleteUser';
+import UpdateUser from '@/components/UpdateUser';
 import useAppContext from '@/hooks/useAppContext';
 import Loader from '@/components/Loader/Loader';
-import CreateEvent from '@/components/CreateEvent/CreateEvent';
-import UpdateEvent from '@/components/UpdateEvent/UpdateEvent';
-import DeleteEvent from '@/components/DeleteEvent/DeleteEvent';
-import ListEvents from '@/components/ListEvent/ListEvent';
+import CreateEvent from '@/components/CreateEvent';
+import UpdateEvent from '@/components/UpdateEvent';
+import DeleteEvent from '@/components/DeleteEvent';
+import ListEvents from '@/components/ListEvent';
 
 const testSubmenu = [
   {
