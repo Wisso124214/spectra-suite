@@ -28,7 +28,7 @@ export type BasicResponseToProcess = {
   ok: boolean;
   errorCode?: number;
   message?: string;
-  result: any;
+  result: unknown;
 };
 
 export type AppContextType = {

@@ -358,7 +358,7 @@ export default function CreateEvent({ Title, perfil }: CreateEventProps) {
 
             <Field
               orientation="responsive"
-              className="col-span-2 mt-2 flex gap-2 grid grid-cols-2"
+              className="col-span-2 mt-2 grid grid-cols-2 gap-2"
             >
               <Button type="submit" className="w-[60px]">
                 Crear
