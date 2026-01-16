@@ -242,9 +242,9 @@ export default function Home() {
           (isSidebarOpen ? 'md:ml-72 mr-0 md:w-[calc(100vw-290px)] ' : '')
         }
       >
-        {contentHome || <Loader className="mb-35" />}
+        {contentHome || <Loader className='mb-35' />}
       </div>
-      <div className="absolute z-12 w-0">
+      <div className='absolute z-12 w-0'>
         <Layout defaultOpen={true}>
           <CustomSidebar
             data={menuData}
