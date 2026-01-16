@@ -1,10 +1,5 @@
 // EventList.tsx
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldSet,
-} from '@/components/ui/field';
+import { FieldDescription, FieldGroup, FieldSet } from '@/components/ui/field';
 import {
   CommandDialog,
   CommandEmpty,
@@ -141,26 +136,26 @@ export default function ListEvents({ Title }: { Title: string }) {
   const handleRefresh = () => setRefreshToken((t) => t + 1);
 
   return (
-    <div className="w-full max-w-4xl p-4 border rounded-md bg-background">
+    <div className='w-full max-w-4xl p-4 border rounded-md bg-background'>
       <FieldSet>
         <FieldDescription>{Title ?? 'Lista de eventos'}</FieldDescription>
 
-        <FieldGroup className="flex gap-2 items-center mb-4">
+        <FieldGroup className='flex gap-2 items-center mb-4'>
           <Input
-            placeholder="Buscar por nombre, descripción o lugar..."
+            placeholder='Buscar por nombre, descripción o lugar...'
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1"
+            className='flex-1'
           />
           <Button onClick={handleRefresh}>Recargar</Button>
         </FieldGroup>
 
         {loading ? (
-          <div className="py-8 text-center">Cargando eventos…</div>
+          <div className='py-8 text-center'>Cargando eventos…</div>
         ) : error ? (
-          <div className="py-4 text-center text-red-600">Error: {error}</div>
+          <div className='py-4 text-center text-red-600'>Error: {error}</div>
         ) : filtered.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
+          <div className='py-8 text-center text-muted-foreground'>
             No hay eventos.
           </div>
         ) : (
@@ -169,26 +164,26 @@ export default function ListEvents({ Title }: { Title: string }) {
               <TableRow>
                 <TableHead>Evento</TableHead>
                 <TableHead>Fecha</TableHead>
-                <TableHead className="text-right">Costo</TableHead>
-                <TableHead className="text-right">Capacidad</TableHead>
-                <TableHead className="text-right">Visibilidad</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead className='text-right'>Costo</TableHead>
+                <TableHead className='text-right'>Capacidad</TableHead>
+                <TableHead className='text-right'>Visibilidad</TableHead>
+                <TableHead className='text-right'>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <tbody>
               {filtered.map((ev) => (
                 <TableRow key={ev.id}>
-                  <td className="py-2 px-3">{ev.name}</td>
-                  <td className="py-2 px-3">{formatDate(ev.fecha)}</td>
-                  <td className="py-2 px-3 text-right">{ev.costo ?? 0}</td>
-                  <td className="py-2 px-3 text-right">{ev.capacidad ?? 0}</td>
-                  <td className="py-2 px-3 text-right">{ev.visibilidad}</td>
-                  <td className="py-2 px-3 text-right">
-                    <div className="flex gap-2 justify-end">
+                  <td className='py-2 px-3'>{ev.name}</td>
+                  <td className='py-2 px-3'>{formatDate(ev.fecha)}</td>
+                  <td className='py-2 px-3 text-right'>{ev.costo ?? 0}</td>
+                  <td className='py-2 px-3 text-right'>{ev.capacidad ?? 0}</td>
+                  <td className='py-2 px-3 text-right'>{ev.visibilidad}</td>
+                  <td className='py-2 px-3 text-right'>
+                    <div className='flex gap-2 justify-end'>
                       <Button onClick={() => openDetails(ev)}>Ver</Button>
                       {/* Placeholders: reemplaza por navegación o abrir edit/delete */}
                       <Button
-                        variant="outline"
+                        variant='outline'
                         onClick={() => {
                           // ejemplo: navegar a la vista de edición
                           window.location.href = `/events/edit/${ev.id}`;
@@ -206,16 +201,16 @@ export default function ListEvents({ Title }: { Title: string }) {
 
         {/* Detalle en CommandDialog (puedes cambiar por un Modal real) */}
         <CommandDialog open={openDialog} onOpenChange={setOpenDialog}>
-          <CommandInput placeholder="Detalle del evento (cerrar para salir)" />
+          <CommandInput placeholder='Detalle del evento (cerrar para salir)' />
           <CommandList>
             <CommandEmpty>No seleccionado</CommandEmpty>
-            <CommandGroup heading="Detalle">
+            <CommandGroup heading='Detalle'>
               {selected ? (
                 <CommandItem onSelect={() => setOpenDialog(false)}>
-                  <div className="w-full">
-                    <h3 className="font-semibold">{selected.name}</h3>
-                    <p className="text-sm mt-2">{selected.descripcion}</p>
-                    <div className="text-sm mt-2">
+                  <div className='w-full'>
+                    <h3 className='font-semibold'>{selected.name}</h3>
+                    <p className='text-sm mt-2'>{selected.descripcion}</p>
+                    <div className='text-sm mt-2'>
                       <div>
                         <strong>Fecha:</strong> {formatDate(selected.fecha)}{' '}
                         {selected.hora ?? ''}

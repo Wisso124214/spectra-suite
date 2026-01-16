@@ -1,5 +1,5 @@
 import { LogOut, RotateCcwKey, UserRoundPen } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 
 import {
   Command,
@@ -175,7 +175,7 @@ export function CommandAvatar() {
                           onClick={item.onClick}
                           key={(item.label ?? ii) + ii}
                         >
-                          <CommandItem variant='hover-accent'>
+                          <CommandItem>
                             {Icon && <Icon />}
                             <span className='text-wrap wrap-anywhere line-clamp-1 text-left'>
                               {item.label}

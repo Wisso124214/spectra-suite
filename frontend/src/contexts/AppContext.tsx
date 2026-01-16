@@ -3,7 +3,6 @@ import { SERVER_URL } from '../../config';
 import toast from 'react-hot-toast';
 import { toastStyles } from '../../config';
 import { useNavigate } from 'react-router-dom';
-import Loader from '@/components/Loader/Loader';
 
 export type User = {
   id?: string;

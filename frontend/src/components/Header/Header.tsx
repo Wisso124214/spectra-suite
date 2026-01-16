@@ -23,7 +23,7 @@ export default function Header() {
           credentials: 'include',
         }).then((res) => res);
         const data = await response.json();
-        const newUserData = { ...userData, ...data?.userData };
+        const newUserData = { ...(userData || {}), ...data?.userData };
         if (newUserData?.activeProfile)
           newUserData.profile = newUserData?.activeProfile;
 
